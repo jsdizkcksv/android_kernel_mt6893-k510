@@ -130,10 +130,13 @@ static int sha256_finup_neon(struct shash_desc *desc, const u8 *data,
 				__sha256_block_data_order);
 		sha256_base_do_finalize(desc, __sha256_block_data_order);
 	} else {
-		if (len)
-			sha256_update_neon(desc, data, len);
 		kernel_neon_begin();
 		sha256_base_do_finalize(desc, __sha256_block_neon);
+		if (len)
+			sha256_base_do_update(desc, data, len,
+				__sha256_block_neon);
+		sha256_base_do_finalize(desc,
+				__sha256_block_neon);
 		kernel_neon_end();
 	}
 	return sha256_base_finish(desc, out);
