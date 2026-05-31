@@ -92,6 +92,17 @@ struct thermal_cooling_device_ops {
 	int (*power2state)(struct thermal_cooling_device *, u32, unsigned long *);
 
 	ANDROID_KABI_RESERVE(1);
+	int (*get_available) (struct thermal_cooling_device *, char *);
+	int (*set_min_state)(struct thermal_cooling_device *cdev,
+				unsigned long target);
+	int (*get_min_state)(struct thermal_cooling_device *cdev,
+				unsigned long *target);
+	int (*get_requested_power)(struct thermal_cooling_device *,
+				   struct thermal_zone_device *, u32 *);
+	int (*state2power)(struct thermal_cooling_device *,
+			   struct thermal_zone_device *, unsigned long, u32 *);
+	int (*power2state)(struct thermal_cooling_device *,
+			   struct thermal_zone_device *, u32, unsigned long *);
 };
 
 struct thermal_cooling_device {

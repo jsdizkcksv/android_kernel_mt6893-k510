@@ -3404,5 +3404,20 @@ static inline int seal_check_future_write(int seals, struct vm_area_struct *vma)
 	return 0;
 }
 
+extern unsigned long reclaim_global(unsigned long nr_to_reclaim);
+extern int reclaim_pte_range(pmd_t *pmd, unsigned long addr,
+				unsigned long end, struct mm_walk *walk);
+#ifdef CONFIG_RTMM
+struct reclaim_param {
+	struct vm_area_struct *vma;
+	/* Number of pages scanned */
+	int nr_scanned;
+	/* max pages to reclaim */
+	int nr_to_reclaim;
+	/* pages reclaimed */
+	int nr_reclaimed;
+};
+#endif
+
 #endif /* __KERNEL__ */
 #endif /* _LINUX_MM_H */

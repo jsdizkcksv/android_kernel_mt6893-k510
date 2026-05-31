@@ -119,6 +119,10 @@ TRACE_EVENT(signal_deliver,
 		  __entry->sa_handler, __entry->sa_flags)
 );
 
+DECLARE_TRACE(do_send_sig_info_hook,
+	TP_PROTO(int sig, struct task_struct *killer, struct task_struct *dst),
+	TP_ARGS(sig, killer, dst));
+
 #endif /* _TRACE_SIGNAL_H */
 
 /* This part must be outside protection */

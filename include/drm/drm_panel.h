@@ -171,6 +171,8 @@ struct drm_panel {
 	 * Panel entry in registry.
 	 */
 	struct list_head list;
+	struct blocking_notifier_head nh;
+	bool panel_initialized;
 };
 
 void drm_panel_init(struct drm_panel *panel, struct device *dev,

@@ -3,6 +3,7 @@
 #define _UAPI_LINUX_THERMAL_H
 
 #define THERMAL_NAME_LENGTH	20
+#define THERMAL_AVAILABLE_STATE_LENGTH	768
 
 enum thermal_device_mode {
 	THERMAL_DEVICE_DISABLED = 0,

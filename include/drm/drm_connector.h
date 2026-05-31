@@ -1495,6 +1495,11 @@ struct drm_connector {
 	/** @tile_v_size: vertical size of this tile. */
 	uint16_t tile_h_size, tile_v_size;
 
+	uint brightness_clone;
+	uint dc_status;
+	uint8_t panel_id;
+	int panel_event;
+
 	/**
 	 * @free_node:
 	 *
