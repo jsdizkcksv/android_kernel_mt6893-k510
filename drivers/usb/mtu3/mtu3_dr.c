@@ -10,6 +10,7 @@
 #include <linux/usb/role.h>
 #include <linux/of_platform.h>
 #include <linux/iopoll.h>
+#include <mt-plat/v1/charger_class.h>
 
 #include "mtu3.h"
 #include "mtu3_dr.h"
@@ -215,12 +216,28 @@ int ssusb_set_vbus(struct otg_switch_mtk *otg_sx, int is_on)
 	dev_dbg(ssusb->dev, "%s: turn %s\n", __func__, is_on ? "on" : "off");
 
 	if (is_on) {
+		#ifdef CONFIG_MTK_CHARGER
+		if (ssusb->chg5_dev) {
+			charger_dev_enable_otg(ssusb->chg5_dev, true);
+			dev_info(ssusb->dev, "%s chg5 device detect!\n", __func__);
+		} else {
+			charger_dev_enable_otg(ssusb->chg_dev, true);
+			dev_info(ssusb->dev, "%s chg1 device detect!\n", __func__);
+		}
+		#endif
 		ret = regulator_enable(vbus);
 		if (ret) {
 			dev_err(ssusb->dev, "vbus regulator enable failed\n");
 			return ret;
 		}
 	} else {
+		#ifdef CONFIG_MTK_CHARGER
+		if (ssusb->chg5_dev)
+			charger_dev_enable_otg(ssusb->chg5_dev, false);
+		else
+			charger_dev_enable_otg(ssusb->chg_dev, false);
+		#endif
+
 		regulator_disable(vbus);
 	}
 
@@ -680,8 +697,10 @@ int ssusb_otg_switch_init(struct ssusb_mtk *ssusb)
 
 	/* default as host, update state */
 	otg_sx->sw_state = ssusb->is_host ?
-			MTU3_SW_ID_GROUND : MTU3_SW_VBUS_VALID;
-
+				MTU3_SW_ID_GROUND : MTU3_SW_VBUS_VALID;
+	#ifdef CONFIG_MTK_CHARGER
+	ssusb->chg5_dev = get_charger_by_name("quinary_chg");
+	#endif
 	/* initial operation mode */
 	otg_sx->op_mode = MTU3_DR_OPERATION_DUAL;
 

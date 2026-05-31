@@ -4,6 +4,15 @@ ccflags-y := -I$(srctree)/drivers/usb/gadget/
 ccflags-y += -I$(srctree)/drivers/usb/gadget/function
 
 ccflags-$(CONFIG_USB_MTU3_DEBUG)	+= -DDEBUG
+ifeq ($(CONFIG_AGATE_CHARGER),y)
+	ccflags-y += -I$(srctree)/drivers/misc/mediatek/typec/tcpc_agate/
+else
+	ccflags-y += -I$(srctree)/drivers/misc/mediatek/typec/tcpc/
+endif
+
+ifeq (y, $(filter y, $(CONFIG_MACH_MT6779) $(CONFIG_MACH_MT6785)))
+ccflags-y += -DMTU3_USE_SPM_API
+endif
 
 # define_trace.h needs to know how to find our header
 CFLAGS_mtu3_trace.o	:= -I$(src)
