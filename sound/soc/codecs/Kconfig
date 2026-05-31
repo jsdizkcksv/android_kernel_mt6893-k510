@@ -1940,4 +1940,46 @@ config SND_SOC_TPA6130A2
 	tristate "Texas Instruments TPA6130A2 headphone amplifier"
 	depends on I2C
 
+config SND_SOC_RT5509
+	tristate "Richtek RT5509 Smart AMP"
+	depends on I2C
+	select RT_REGMAP
+	help
+	  Config of RT5509. It is a Smart power
+	  amplifier which contain speaker protection,
+	  multi-band DRC, equalizer function. It would
+	  be set to yes if device with RT5509 on it.
+
+#Audio Start
+source "sound/soc/codecs/cs35l41/Kconfig"
+#Audio End
+
+config SND_RICHTEK_SPM
+	bool "Richtek SPM Class"
+	help
+	  Say Y here to enable Richtek SPM Class support.
+	  This is a IPC Command for audio dsp and amp driver.
+	  Enable it, driver can get hifi3 data.
+	  Disable it, driver cannot get hifi3 data.
+
+config SND_SOC_RT5512
+	tristate "Mediatek RT5512 speaker amplifier"
+	depends on I2C
+	select SND_RICHTEK_SPM
+	help
+	  Config of RT5512. It is a Smart power
+	  amplifier which contain speaker protection,
+	  multi-band DRC, equalizer function. It would
+	  be set to yes if device with RT5512 on it.
+
+config SND_SOC_SMARTPAINFO
+	tristate "smartpa info"
+	depends on I2C
+	help
+	  Config of SMARTPAINFO. This config can be
+	  used to enable SND_SOC_SMARTPAINFO.
+	  It is a smartpa.It would be set to yes
+	  if device with smartpa on it, enable it.
+	  If unsure, say N.
+
 endmenu

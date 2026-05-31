@@ -28,6 +28,24 @@
 #include "aw87339.h"
 #endif
 
+#ifdef CONFIG_SND_SOC_CS35L41
+#include "../../codecs/cs35l41/cs35l41_ext.h"
+#define CS35L41_SPEAKER_NAME "speaker_amp.7-0040"
+#define CS35L41_RECEIVER_NAME "speaker_amp.7-0042"
+
+static struct snd_soc_dai_link_component cs35l41_dai_link_component[] =
+{
+	{
+		.name= CS35L41_SPEAKER_NAME,
+		.dai_name="cs35l41-pcm",
+	},
+	{
+		.name= CS35L41_RECEIVER_NAME,
+		.dai_name="cs35l41-pcm",
+	},
+};
+#endif
+
 /* adsp relate */
 #if IS_ENABLED(CONFIG_SND_SOC_MTK_AUDIO_DSP)
 #include "../audio_dsp/mtk-dsp-common.h"
@@ -42,8 +60,9 @@
 #define MTK_SPK_NAME "Speaker Codec"
 #define MTK_SPK_REF_NAME "Speaker Codec Ref"
 
-static unsigned int mtk_spk_type;
 static int mtk_spk_i2s_out = MTK_SPK_I2S_3, mtk_spk_i2s_in = MTK_SPK_I2S_0;
+static unsigned int mtk_spk_type = MTK_SPK_NOT_SMARTPA;
+static unsigned int mtk_spk_cnt;
 static struct mtk_spk_i2c_ctrl mtk_spk_list[MTK_SPK_TYPE_NUM] = {
 	[MTK_SPK_NOT_SMARTPA] = {
 		.codec_dai_name = "snd-soc-dummy-dai",
@@ -72,6 +91,17 @@ static struct mtk_spk_i2c_ctrl mtk_spk_list[MTK_SPK_TYPE_NUM] = {
 		.codec_name = "tfa98xx",
 	},
 #endif /* CONFIG_SND_SOC_TFA9874 */
+
+#ifdef CONFIG_SND_SOC_CS35L41
+	[MTK_SPK_CS_CS35L41] = {
+		.i2c_probe = cs35l41_i2c_probe,
+		.i2c_remove = cs35l41_i2c_remove,
+		.codec_dai_name = "cs35l41-pcm",
+		.codec_name = "cs35l41",
+		.codecs = cs35l41_dai_link_component,
+		.num_codecs = ARRAY_SIZE(cs35l41_dai_link_component),
+	},
+#endif
 };
 
 static int mtk_spk_i2c_probe(struct i2c_client *client,
@@ -81,7 +111,7 @@ static int mtk_spk_i2c_probe(struct i2c_client *client,
 
 	dev_info(&client->dev, "%s()\n", __func__);
 
-	mtk_spk_type = MTK_SPK_NOT_SMARTPA;
+	//mtk_spk_type = MTK_SPK_NOT_SMARTPA;
 	for (i = 0; i < MTK_SPK_TYPE_NUM; i++) {
 		if (!mtk_spk_list[i].i2c_probe)
 			continue;
@@ -89,8 +119,17 @@ static int mtk_spk_i2c_probe(struct i2c_client *client,
 		ret = mtk_spk_list[i].i2c_probe(client, id);
 		if (ret)
 			continue;
+		mtk_spk_cnt++;
+		if (mtk_spk_cnt > 1)
+		{
+			if (mtk_spk_type != i)
+				pr_err("%s cnt: %d, type: %d, i:%d\n", __func__, mtk_spk_cnt, mtk_spk_type, i);
+			else
+				pr_info("%s cnt: %d, type: %d\n", __func__, mtk_spk_cnt, mtk_spk_type);
+		}
 
 		mtk_spk_type = i;
+                dev_info(&client->dev, "mtk_spk_type is %d\n", mtk_spk_type);
 		break;
 	}
 
@@ -318,15 +357,31 @@ EXPORT_SYMBOL(mtk_spk_recv_ipi_buf_from_dsp);
 
 static const struct i2c_device_id mtk_spk_i2c_id[] = {
 	{ "tfa9874", 0},
+	/*{ "tfa98xx", 0},*/
+#ifdef CONFIG_SND_SOC_CS35L41
+ 	{ "cs35l41", 0},
+	/*{ "speaker_amp", 0},*/
+ 	{}
+#else
+	{ "tfa98xx", 0},
 	{ "speaker_amp", 0},
 	{}
+#endif
 };
 MODULE_DEVICE_TABLE(i2c, mtk_spk_i2c_id);
 
 #ifdef CONFIG_OF
 static const struct of_device_id mtk_spk_match_table[] = {
+	/*{.compatible = "nxp,tfa98xx",},*/
+#ifdef CONFIG_SND_SOC_CS35L41
+ 	{.compatible = "cirrus,cs35l41",},
+	/*{.compatible = "mediatek,speaker_amp",},*/
+ 	{},
+#else
+	{.compatible = "nxp,tfa98xx",},
 	{.compatible = "mediatek,speaker_amp",},
 	{},
+#endif
 };
 MODULE_DEVICE_TABLE(of, mtk_spk_match_table);
 #endif /* #ifdef CONFIG_OF */

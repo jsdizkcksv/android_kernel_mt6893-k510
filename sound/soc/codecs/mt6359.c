@@ -35,7 +35,6 @@ static ssize_t mt6359_codec_sysfs_write(struct file *filp, struct kobject *kobj,
 					struct bin_attribute *bin_attr,
 					char *buf, loff_t off, size_t count);
 
-
 /* static function declaration */
 static void mt6359_set_gpio_smt(struct mt6359_priv *priv)
 {
@@ -1279,6 +1278,16 @@ static void mtk_hp_disable(struct mt6359_priv *priv)
 	/* Disable HP aux output stage */
 	regmap_update_bits(priv->regmap, MT6359_AUDDEC_ANA_CON1,
 			   0x3 << 2, 0x0);
+
+	/* Disable AUD_ZCD */
+	//zcd_enable(priv, false, DEVICE_HP);
+	if (priv->hp_pull_low_off) {
+		regmap_update_bits(priv->regmap, MT6359_AUDDEC_ANA_CON2,
+				RG_HPLOUTPUTSTBENH_VAUDP32_MASK_SFT, 0x0);
+		regmap_update_bits(priv->regmap, MT6359_AUDDEC_ANA_CON2,
+				RG_HPROUTPUTSTBENH_VAUDP32_MASK_SFT, 0x0);
+	}
+	return;
 }
 
 static int mtk_hp_impedance_enable(struct mt6359_priv *priv)
@@ -1324,8 +1333,7 @@ static int mtk_hp_impedance_disable(struct mt6359_priv *priv)
 	/* Disable Audio DAC */
 	regmap_update_bits(priv->regmap, MT6359_AUDDEC_ANA_CON0,
 			   0x000f, 0x0000);
-
-
+	if (!priv->hp_pull_low_off) {
 	/* Enable HPR/L STB enhance circuits for off state */
 	regmap_update_bits(priv->regmap, MT6359_AUDDEC_ANA_CON2,
 			   RG_HPROUTPUTSTBENH_VAUDP32_MASK_SFT,
@@ -1333,6 +1341,10 @@ static int mtk_hp_impedance_disable(struct mt6359_priv *priv)
 	regmap_update_bits(priv->regmap, MT6359_AUDDEC_ANA_CON2,
 			   RG_HPLOUTPUTSTBENH_VAUDP32_MASK_SFT,
 			   0x3 << RG_HPLOUTPUTSTBENH_VAUDP32_SFT);
+
+	}
+	/* Disable AUD_ZCD */
+	zcd_disable(priv);
 
 #if IS_ENABLED(CONFIG_SND_SOC_MT6359P_ACCDET)
 	/* from accdet request */
@@ -5456,7 +5468,8 @@ static void codec_write_reg(struct mt6359_priv *priv, void *arg)
 static void debug_write_reg(struct file *file, void *arg)
 {
 	struct mt6359_priv *priv = file->private_data;
-	return codec_write_reg(priv, arg);
+
+	codec_write_reg(priv, arg);
 }
 
 struct command_function {
@@ -6501,6 +6514,11 @@ static int mt6359_platform_driver_probe(struct platform_device *pdev)
 	if (IS_ERR(priv->regmap))
 		return PTR_ERR(priv->regmap);
 
+	of_property_read_u32(pdev->dev.of_node,
+			"always_pull_low_off",
+			&priv->hp_pull_low_off);
+	dev_info(&pdev->dev, "%s(), hp_pull_low_off=%d\n",
+			__func__, priv->hp_pull_low_off);
 	dev_set_drvdata(&pdev->dev, priv);
 	priv->dev = &pdev->dev;
 

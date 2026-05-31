@@ -21,6 +21,28 @@
 #endif
 #include "../common/mtk-sp-spk-amp.h"
 
+#ifdef CONFIG_SND_SOC_CS35L41
+#define CS35L41_SPEAKER_NAME "speaker_amp.7-0040"
+#define CS35L41_RECEIVER_NAME "speaker_amp.7-0042"
+static struct snd_soc_codec_conf cs35l41_codec_conf[] = {
+	{
+		.dlc = COMP_CODEC_CONF(CS35L41_RECEIVER_NAME),
+		.name_prefix = "RCV",
+	},
+};
+extern int get_type_c_hph_direction(void);
+static struct snd_soc_dai_link_component cs35l41_dai_link_component[] = {
+	{
+		.name = CS35L41_SPEAKER_NAME,
+		.dai_name = "cs35l41-pcm",
+	},
+	{
+		.name = CS35L41_RECEIVER_NAME,
+		.dai_name = "cs35l41-pcm",
+	},
+};
+#endif
+
 /*
  * if need additional control for the ext spk amp that is connected
  * after Lineout Buffer / HP Buffer on the codec, put the control in
@@ -32,7 +54,8 @@ static const char *const mt6885_spk_type_str[] = {MTK_SPK_NOT_SMARTPA_STR,
 						  MTK_SPK_RICHTEK_RT5509_STR,
 						  MTK_SPK_MEDIATEK_MT6660_STR,
 						  MTK_SPK_RICHTEK_RT5512_STR,
-						  MTK_SPK_GOODIX_TFA98XX_STR};
+						  MTK_SPK_GOODIX_TFA98XX_STR,
+						  MTK_SPK_CS_CS35L41_STR};
 static const char *const
 	mt6885_spk_i2s_type_str[] = {MTK_SPK_I2S_0_STR,
 				     MTK_SPK_I2S_1_STR,
@@ -115,6 +138,18 @@ static const struct snd_soc_dapm_route mt6885_mt6359p_routes[] = {
 	{EXT_SPK_AMP_W_NAME, NULL, "Headphone R Ext Spk Amp"},
 };
 
+#ifdef CONFIG_SND_SOC_CS35L41
+static int type_c_hph_direction_get(struct snd_kcontrol *kcontrol,
+				    struct snd_ctl_elem_value *ucontrol)
+{
+	int direction = get_type_c_hph_direction();
+
+	pr_debug("%s() = %d\n", __func__, direction);
+	ucontrol->value.integer.value[0] = direction;
+	return 0;
+}
+#endif
+
 static const struct snd_kcontrol_new mt6885_mt6359p_controls[] = {
 	SOC_DAPM_PIN_SWITCH(EXT_SPK_AMP_W_NAME),
 	SOC_ENUM_EXT("MTK_SPK_TYPE_GET", mt6885_spk_type_enum[0],
@@ -123,6 +158,10 @@ static const struct snd_kcontrol_new mt6885_mt6359p_controls[] = {
 		     mt6885_spk_i2s_out_type_get, NULL),
 	SOC_ENUM_EXT("MTK_SPK_I2S_IN_TYPE_GET", mt6885_spk_type_enum[1],
 		     mt6885_spk_i2s_in_type_get, NULL),
+#ifdef CONFIG_SND_SOC_CS35L41
+	SOC_SINGLE_EXT("USB Headset Direction", SND_SOC_NOPM, 0, 1, 0,
+		       type_c_hph_direction_get, NULL),
+#endif
 };
 
 /*
@@ -1389,6 +1428,10 @@ static struct snd_soc_card mt6885_mt6359p_soc_card = {
 	.owner = THIS_MODULE,
 	.dai_link = mt6885_mt6359p_dai_links,
 	.num_links = ARRAY_SIZE(mt6885_mt6359p_dai_links),
+#ifdef CONFIG_SND_SOC_CS35L41
+	.codec_conf = cs35l41_codec_conf,
+	.num_configs = ARRAY_SIZE(cs35l41_codec_conf),
+#endif
 
 	.controls = mt6885_mt6359p_controls,
 	.num_controls = ARRAY_SIZE(mt6885_mt6359p_controls),
@@ -1401,7 +1444,10 @@ static struct snd_soc_card mt6885_mt6359p_soc_card = {
 static int mt6885_mt6359p_dev_probe(struct platform_device *pdev)
 {
 	struct snd_soc_card *card = &mt6885_mt6359p_soc_card;
-	struct device_node *platform_node, *spk_node;
+	struct device_node *platform_node;
+#ifndef CONFIG_SND_SOC_CS35L41
+	struct device_node *spk_node;
+#endif
 	int ret, i;
 	struct snd_soc_dai_link *dai_link;
 
@@ -1423,35 +1469,54 @@ static int mt6885_mt6359p_dev_probe(struct platform_device *pdev)
 		return -EINVAL;
 	}
 
-	/* get speaker codec node */
+#ifndef CONFIG_SND_SOC_CS35L41
+	/*
+	 * get speaker codec node.  mt6893.dtsi does not describe one, so a
+	 * missing node must not fail the whole card probe.
+	 */
 	spk_node = of_get_child_by_name(pdev->dev.of_node,
 					"mediatek,speaker-codec");
-	if (!spk_node) {
-		dev_err(&pdev->dev,
-			"spk_node of_get_child_by_name fail\n");
-		return -EINVAL;
-	}
+	if (!spk_node)
+		dev_warn(&pdev->dev,
+			 "no mediatek,speaker-codec node, keeping the dai_link defaults\n");
+#endif
 
 	for_each_card_prelinks(card, i, dai_link) {
 		if (!dai_link->platforms->name)
 			dai_link->platforms->of_node = platform_node;
 
 		if (!strcmp(dai_link->name, "Speaker Codec")) {
-			ret = snd_soc_of_get_dai_link_codecs(
-						&pdev->dev, spk_node, dai_link);
-			if (ret < 0) {
-				dev_err(&pdev->dev,
-					"Speaker Codec get_dai_link fail: %d\n", ret);
-				return -EINVAL;
+#ifdef CONFIG_SND_SOC_CS35L41
+			dai_link->codecs = cs35l41_dai_link_component;
+			dai_link->num_codecs =
+				ARRAY_SIZE(cs35l41_dai_link_component);
+#else
+			if (spk_node) {
+				ret = snd_soc_of_get_dai_link_codecs(
+							&pdev->dev, spk_node, dai_link);
+				if (ret < 0) {
+					dev_err(&pdev->dev,
+						"Speaker Codec get_dai_link fail: %d\n", ret);
+					return -EINVAL;
+				}
 			}
+#endif
 		} else if (!strcmp(dai_link->name, "Speaker Codec Ref")) {
-			ret = snd_soc_of_get_dai_link_codecs(
-						&pdev->dev, spk_node, dai_link);
-			if (ret < 0) {
-				dev_err(&pdev->dev,
-					"Speaker Codec Ref get_dai_link fail: %d\n", ret);
-				return -EINVAL;
+#ifdef CONFIG_SND_SOC_CS35L41
+			dai_link->codecs = cs35l41_dai_link_component;
+			dai_link->num_codecs =
+				ARRAY_SIZE(cs35l41_dai_link_component);
+#else
+			if (spk_node) {
+				ret = snd_soc_of_get_dai_link_codecs(
+							&pdev->dev, spk_node, dai_link);
+				if (ret < 0) {
+					dev_err(&pdev->dev,
+						"Speaker Codec Ref get_dai_link fail: %d\n", ret);
+					return -EINVAL;
+				}
 			}
+#endif
 		}
 	}
 

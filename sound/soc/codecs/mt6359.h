@@ -5134,6 +5134,7 @@ struct mt6359_priv {
 	int dev_counter[DEVICE_NUM];
 	int hp_gain_ctl;
 	int hp_hifi_mode;
+	int hp_pull_low_off;
 	int hp_plugged;
 	int mtkaif_protocol;
 	int dmic_one_wire_mode;

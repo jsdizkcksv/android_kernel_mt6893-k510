@@ -289,13 +289,13 @@ void ultra_dump_message(void *msg_data)
 	 *  payload[1]: write data size
 	 *  payload[2]: dump buffer write pointer offset
 	 */
-	dump_idx = *temp_payload;
 
 	if (temp_payload == NULL) {
 		pr_info("%s err\n", __func__);
 		return;
 	}
 	pr_debug("dump msg in this dys\n");
+	dump_idx = *temp_payload;
 
 	if (1) {
 		dump_work[dump_idx].data_size  = *(temp_payload + 1);
