@@ -5,6 +5,16 @@ obj-$(CONFIG_DRM_PANEL_ARM_VERSATILE) += panel-arm-versatile.o
 obj-$(CONFIG_DRM_PANEL_ASUS_Z00T_TM5P5_NT35596) += panel-asus-z00t-tm5p5-n35596.o
 obj-$(CONFIG_DRM_PANEL_BOE_HIMAX8279D) += panel-boe-himax8279d.o
 obj-$(CONFIG_DRM_PANEL_BOE_TV101WUM_NL6) += panel-boe-tv101wum-nl6.o
+export MTK_PLATFORM := $(subst ",,$(CONFIG_MTK_PLATFORM))
+subdir-ccflags-y += -Werror
+
+subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/include
+subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/$(MTK_PLATFORM)/include/
+subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/
+subdir-ccflags-y += -I$(srctree)/drivers/mmc/host/mediatek/$(MTK_PLATFORM)/
+subdir-ccflags-y += -I$(srctree)/drivers/gpu/drm/mediatek/
+subdir-ccflags-y += -I$(srctree)/drivers/gpu/drm/mediatek/mi_disp/
+
 obj-$(CONFIG_DRM_PANEL_LVDS) += panel-lvds.o
 obj-$(CONFIG_DRM_PANEL_SIMPLE) += panel-simple.o
 obj-$(CONFIG_DRM_PANEL_ELIDA_KD35T133) += panel-elida-kd35t133.o
@@ -105,5 +115,15 @@ mediatek-drm-panel-drv-y :=  \
 
 obj-$(CONFIG_DRM_MEDIATEK_PANEL) += mediatek-drm-gateic.o
 obj-$(CONFIG_DRM_MEDIATEK_PANEL) += mediatek-drm-panel-drv.o
+obj-$(CONFIG_DRM_PANEL_TRULY_NT35595_VDO) += panel-truly-nt35595-vdo.o
+obj-$(CONFIG_DRM_PANEL_TRULY_ILI9881H_VDO) += panel-truly-ili9881h-rt4801-vdo.o
+obj-$(CONFIG_DRM_PANEL_TRULY_ILI9882N_VDO_90HZ) += panel-truly-ili9882n-rt4801-vdo-90hz.o
+obj-$(CONFIG_DRM_PANEL_K10A_36_02_0A_DSC_VDO) += leds-lm36273.o
+obj-$(CONFIG_DRM_PANEL_K11T_42_02_0A_DSC_CMD) += panel-k11t-42-02-0a-dsc-cmd.o
+obj-$(CONFIG_DRM_PANEL_RAYDIUM_RM692H0) += panel-raydium-rm692h0-cmd-120hz.o
+obj-$(CONFIG_DRM_PANEL_IT6113) += ite6113.o
+obj-$(CONFIG_DRM_PANEL_NT36532_DSI_VDO_BOE) += panel-nt36532-dsi-vdo-boe.o
+obj-$(CONFIG_BACKLIGHT_KTZ8866) += ktz8866.o
+obj-$(CONFIG_DRM_PANEL_NT36532_DSI_VDO_BOE_6382) += panel-nt36532-dsi-vdo-boe-6382.o
 
 ccflags-$(CONFIG_DRM_MEDIATEK_PANEL) += -I$(srctree)/drivers/leds/
