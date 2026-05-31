@@ -49,6 +49,10 @@
 #include "ufs_quirks.h"
 #include "ufshci.h"
 
+#if defined(CONFIG_SCSI_UFS_FEATURE)
+#include "ufsfeature.h"
+#endif
+
 #define UFSHCD "ufshcd"
 #define UFSHCD_DRIVER_VERSION "0.2"
 
@@ -495,6 +499,14 @@ struct ufs_stats {
 
 	u32 hibern8_exit_cnt;
 	ktime_t last_hibern8_exit_tstamp;
+
+    u32 pa_err_cnt_total;
+    u32 pa_err_cnt[UFS_EC_PA_MAX];
+    u32 dl_err_cnt_total;
+    u32 dl_err_cnt[UFS_EC_DL_MAX];
+    u32 dme_err_cnt;
+    u32 power_mode_change_cnt;
+
 	struct ufs_event_hist event[UFS_EVT_CNT];
 };
 
@@ -689,6 +701,7 @@ struct ufs_hba_variant_params {
 	u16 hba_enable_delay_us;
 	u32 wb_flush_threshold;
 };
+
 
 #ifdef CONFIG_SCSI_UFS_HPB
 /**
@@ -934,6 +947,10 @@ struct ufs_hba {
 
 	struct device		bsg_dev;
 	struct request_queue	*bsg_queue;
+
+#if defined(CONFIG_SCSI_UFS_FEATURE)
+	struct ufsf_feature ufsf;
+#endif
 	bool wb_buf_flush_enabled;
 	bool wb_enabled;
 	struct delayed_work rpm_dev_flush_recheck_work;
@@ -1212,6 +1229,10 @@ int ufshcd_read_string_desc(struct ufs_hba *hba, u8 desc_index,
 
 int ufshcd_hold(struct ufs_hba *hba, bool async);
 void ufshcd_release(struct ufs_hba *hba);
+#if defined(CONFIG_SCSI_UFS_FEATURE)
+int ufshcd_exec_dev_cmd(struct ufs_hba *hba,
+					enum dev_cmd_type cmd_type, int timeout);
+#endif
 
 void ufshcd_map_desc_id_to_length(struct ufs_hba *hba, enum desc_idn desc_id,
 				  int *desc_length);
@@ -1419,4 +1440,15 @@ int ufshcd_dump_regs(struct ufs_hba *hba, size_t offset, size_t len,
 		     const char *prefix);
 int ufshcd_uic_hibern8_enter(struct ufs_hba *hba);
 int ufshcd_uic_hibern8_exit(struct ufs_hba *hba);
+
+int ufshcd_query_flag_sel(struct ufs_hba *hba, enum query_opcode opcode,
+		enum flag_idn idn, u8 index, u8 selector, bool *flag_res);
+
+int ufshcd_read_desc_param_sel(struct ufs_hba *hba,\
+		enum desc_idn desc_id,
+		int desc_index,
+		u8 selector,
+		u8 param_offset,
+		u8 *param_read_buf,
+		u8 param_size);
 #endif /* End of Header */
