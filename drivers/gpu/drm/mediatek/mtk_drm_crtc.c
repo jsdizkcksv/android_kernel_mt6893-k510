@@ -22,6 +22,61 @@
 #include "mtk_drm_ddp_comp.h"
 #include "mtk_drm_gem.h"
 #include "mtk_drm_plane.h"
+#include "mtk_writeback.h"
+#include "mtk_fence.h"
+#include "mtk_sync.h"
+#include "mtk_drm_session.h"
+#include "mtk_dump.h"
+#include "mtk_drm_fb.h"
+#include "mtk_rect.h"
+#include "mtk_drm_ddp_addon.h"
+#include "mtk_drm_helper.h"
+#include "mtk_drm_lowpower.h"
+#include "mtk_drm_fbdev.h"
+#include "mtk_drm_assert.h"
+#include "mtk_drm_mmp.h"
+#include "mtk_disp_recovery.h"
+#include "mtk_drm_arr.h"
+#include "mtk_drm_trace.h"
+#include "cmdq-sec.h"
+#include "cmdq-sec-iwc-common.h"
+#include "mtk_disp_ccorr.h"
+#include "mtk_debug.h"
+#ifdef CONFIG_MTK_SVP_ON_MTEE_SUPPORT
+#include "tz_m4u.h"
+#endif
+#if defined (CONFIG_DRM_PANEL_K16_38_0C_0A_DSC_VDO) || defined (CONFIG_DRM_PANEL_K16_38_0E_0B_DSC_VDO)
+#include "mi_disp/mi_drm_crtc.h"
+#endif
+/* *****Panel_Master*********** */
+#include "mtk_fbconfig_kdebug.h"
+#include "mtk_layering_rule_base.h"
+#include "mi_disp/mi_disp_feature.h"
+
+static struct mtk_drm_property mtk_crtc_property[CRTC_PROP_MAX] = {
+	{DRM_MODE_PROP_ATOMIC, "OVERLAP_LAYER_NUM", 0, UINT_MAX, 0},
+	{DRM_MODE_PROP_ATOMIC, "LAYERING_IDX", 0, UINT_MAX, 0},
+	{DRM_MODE_PROP_ATOMIC, "PRESENT_FENCE", 0, UINT_MAX, 0},
+	{DRM_MODE_PROP_ATOMIC, "SF_PRESENT_FENCE", 0, UINT_MAX, 0},
+	{DRM_MODE_PROP_ATOMIC, "DOZE_ACTIVE", 0, UINT_MAX, 0},
+	{DRM_MODE_PROP_ATOMIC, "OUTPUT_ENABLE", 0, UINT_MAX, 0},
+	{DRM_MODE_PROP_ATOMIC, "OUTPUT_BUFF_IDX", 0, UINT_MAX, 0},
+	{DRM_MODE_PROP_ATOMIC, "OUTPUT_X", 0, UINT_MAX, 0},
+	{DRM_MODE_PROP_ATOMIC, "OUTPUT_Y", 0, UINT_MAX, 0},
+	{DRM_MODE_PROP_ATOMIC, "OUTPUT_WIDTH", 0, UINT_MAX, 0},
+	{DRM_MODE_PROP_ATOMIC, "OUTPUT_HEIGHT", 0, UINT_MAX, 0},
+	{DRM_MODE_PROP_ATOMIC, "OUTPUT_FB_ID", 0, UINT_MAX, 0},
+	{DRM_MODE_PROP_ATOMIC, "INTF_BUFF_IDX", 0, UINT_MAX, 0},
+	{DRM_MODE_PROP_ATOMIC, "DISP_MODE_IDX", 0, UINT_MAX, 0},
+	{DRM_MODE_PROP_ATOMIC, "HBM_ENABLE", 0, UINT_MAX, 0},
+	{DRM_MODE_PROP_ATOMIC, "COLOR_TRANSFORM", 0, UINT_MAX, 0},
+	{DRM_MODE_PROP_ATOMIC, "USER_SCEN", 0, UINT_MAX, 0},
+	{DRM_MODE_PROP_ATOMIC, "HDR_ENABLE", 0, UINT_MAX, 0},
+	{DRM_MODE_PROP_ATOMIC, "OVL_DSI_SEQ", 0, UINT_MAX, 0},
+#if defined (CONFIG_DRM_PANEL_K16_38_0C_0A_DSC_VDO) || defined (CONFIG_DRM_PANEL_K16_38_0E_0B_DSC_VDO)
+	{DRM_MODE_PROP_ATOMIC, "FOD_SYNC_INFO", 0, UINT_MAX, 0},
+#endif
+};
 
 /**
  * struct mtk_drm_crtc - MediaTek specific crtc structure.
@@ -529,6 +584,22 @@ static void mtk_drm_crtc_atomic_enable(struct drm_crtc *crtc,
 	int ret;
 
 	DRM_DEBUG_DRIVER("%s %d\n", __func__, crtc->base.id);
+	struct cmdq_pkt *cmdq_handle = NULL;
+	struct mtk_ddp_comp *comp = mtk_ddp_comp_request_output(mtk_crtc);
+	struct mtk_cmdq_cb_data *cb_data;
+	static unsigned int bl_cnt;
+	struct cmdq_pkt_buffer *cmdq_buf;
+	bool is_frame_mode;
+	int index = drm_crtc_index(crtc);
+	if (m_new_pq_persist_property[DISP_PQ_CCORR_SILKY_BRIGHTNESS])
+		sb_backlight = level;
+	DDPINFO("%s:%d, backlight level= %d\n", __func__, __LINE__, level);
+	CRTC_MMP_EVENT_START(index, backlight, (unsigned long)crtc,
+			level);
+
+	if (!(mtk_crtc->enabled)) {
+		DDPINFO("Sleep State set backlight stop --crtc not ebable\n");
+		CRTC_MMP_EVENT_END(index, backlight, 0, 0);
 
 	ret = mtk_smi_larb_get(comp->larb_dev);
 	if (ret) {
@@ -540,6 +611,22 @@ static void mtk_drm_crtc_atomic_enable(struct drm_crtc *crtc,
 	if (ret) {
 		mtk_smi_larb_put(comp->larb_dev);
 		return;
+	/* set backlight */
+	if (comp->funcs && comp->funcs->io_cmd) {
+		comp->funcs->io_cmd(comp, NULL, MI_DSI_SET_BL, &level);
+		CRTC_MMP_EVENT_END(index, backlight, (unsigned long)crtc,
+				level);
+		return 0;
+	}
+
+	DDP_MUTEX_LOCK(&mtk_crtc->lock, __func__, __LINE__);
+
+	if (!comp) {
+		DDPINFO("%s no output comp\n", __func__);
+		mutex_unlock(&mtk_crtc->lock);
+		CRTC_MMP_EVENT_END(index, backlight, 0, 1);
+
+		return -EINVAL;
 	}
 
 	drm_crtc_vblank_on(crtc);
