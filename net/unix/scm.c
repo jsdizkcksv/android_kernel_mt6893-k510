@@ -61,6 +61,7 @@ void unix_inflight(struct user_struct *user, struct file *fp)
 		u->inflight++;
 		/* Paired with READ_ONCE() in wait_for_unix_gc() */
 		WRITE_ONCE(unix_tot_inflight, unix_tot_inflight + 1);
+		unix_tot_inflight++;
 	}
 	WRITE_ONCE(user->unix_inflight, user->unix_inflight + 1);
 	spin_unlock(&unix_gc_lock);

@@ -251,6 +251,7 @@ void unix_gc(void)
 		long total_refs;
 
 		total_refs = file_count(sk->sk_socket->file);
+		total_refs = file_count(u->sk.sk_socket->file);
 
 		BUG_ON(!u->inflight);
 		BUG_ON(total_refs < u->inflight);
