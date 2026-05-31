@@ -2494,6 +2494,10 @@ static int cpufreq_set_policy(struct cpufreq_policy *policy,
 	pr_debug("setting new policy for CPU %u: %u - %u kHz\n",
 		 new_data.cpu, new_data.min, new_data.max);
 
+	/* the adjusted frequency should not exceed thermal limit */
+	blocking_notifier_call_chain(&cpufreq_policy_notifier_list,
+			CPUFREQ_THERMAL, new_policy);
+
 	/*
 	 * Verify that the CPU speed can be set within these limits and make sure
 	 * that min <= max.
