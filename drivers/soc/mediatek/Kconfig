@@ -98,3 +98,9 @@ config MTK_SOCINFO
 	  information about the SoC to user space.
 
 endmenu
+
+config XIAOMI_HWID
+	bool "Xiaomi HWID interface"
+	default y
+	help
+	  Say yes to add support for Xiaomi HWID function interfaces.
