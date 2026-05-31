@@ -166,7 +166,7 @@
 				regulator-always-on;
 			};
 
-			mt6359p_vcamio_reg: ldo_vcamio {
+			mt6359p_vcamio_reg: mt_pmic_vcamio_ldo_reg: ldo_vcamio {
 				regulator-name = "vcamio";
 				regulator-min-microvolt = <1700000>;
 				regulator-max-microvolt = <1900000>;
@@ -445,7 +445,7 @@
 			};
 		};
 
-		mtk_gauge: mtk_gauge {
+		mtk_gauge: bat_gm30: mtk_gauge {
 			compatible = "mediatek,mt6359p-gauge";
 			bootmode = <&chosen>;
 			io-channels = <&pmic_auxadc AUXADC_BAT_TEMP>,

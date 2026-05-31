@@ -5,6 +5,7 @@
  */
 
 /dts-v1/;
+#include <generated/autoconf.h>
 #include "mediatek/mt6893.dtsi"
 #include "mediatek/mt6359p.dtsi"
 #include "mediatek/mt6893-clkitg.dtsi"
@@ -533,6 +534,24 @@
 			123000 47
 			124000 46
 			125000 44>;
+	};
+
+	tboard_thermistor4: thermal-sensor4 {
+		compatible = "mediatek,mtboard-thermistor4";
+		io-channels = <&auxadc 4>;
+		io-channel-names = "thermistor-ch4";
+	};
+
+	tboard_thermistor5: thermal-sensor5 {
+		compatible = "mediatek,mtboard-thermistor5";
+		io-channels = <&auxadc 5>;
+		io-channel-names = "thermistor-ch5";
+	};
+
+	tboard_thermistor6: thermal-sensor6 {
+		compatible = "mediatek,mtboard-thermistor6";
+		io-channels = <&auxadc 3>;
+		io-channel-names = "thermistor-ch3";
 	};
 
 	pmic_temp: pmic_temp {
@@ -1218,7 +1237,7 @@
 	};
 
 	mrdump_ext_rst: mrdump_ext_rst {
-		compatible = "mediatek, mrdump_ext_rst-eint";
+		compatible = "mediatek, mrdump_ext_rst-eint-disable";
 		mode = "IRQ";
 		status = "okay";
 		interrupts = <0 0x8 0 0>;
@@ -1242,7 +1261,7 @@
 	#address-cells = <1>;
 	#size-cells = <0>;
 
-	subpmic_mtk: mt6360_pmu@34 {
+	subpmic_mtk: mt6360_pmu: mt6360_pmu@34 {
 		#interrupt-cells = <2>;
 		status = "ok";
 		compatible = "mediatek,mt6360_pmu";
@@ -1351,7 +1370,7 @@
 				};
 			};
 		};
-		pmic {
+		mt6360_pmic: pmic {
 			compatible = "mediatek,mt6360_pmic";
 			mt6360_mdla_buck_reg: buck1 {
 				regulator-compatible = "BUCK1";
@@ -1716,3 +1735,141 @@
 		};
 	};
 };
+
+/* ============================================================
+ * Xiaomi board-level nodes ported from the 4.19 vendor tree
+ * (e946fe04b528 "arm64: dts: mediatek: Import Xiaomi changes").
+ * SoC-level changes live in mt6893.dtsi; nothing here redefines a
+ * node that the 5.10 tree already provides.
+ * ============================================================ */
+/ {
+	odm: odm {
+		compatible = "simple-bus";
+		/* reserved for overlay by odm */
+	};
+
+	mt_charger: mt_charger {
+		compatible = "mediatek,mt-charger";
+		bootmode = <&chosen>;
+	};
+
+	cp_qc30: cp_qc30 {
+	};
+
+	usbpd_pm: usbpd_pm {
+	};
+
+	gamekey: gamekey {
+		compatible = "xm,gamekey";
+	};
+
+	xiaomi_touch: xiaomi_touch {
+		compatible = "xiaomi-touch";
+		status = "ok";
+		touch,name = "xiaomi-touch";
+	};
+
+	/* NFC start */
+	nfc: nfc {
+		compatible = "mediatek,nfc-gpio-v2";
+		reg = <0x08>;
+		gpio-rst = <10>;
+		gpio-rst-std = <&pio 10 0x0>;
+		gpio-irq = <11>;
+		gpio-irq-std = <&pio 11 0x0>;
+	};
+
+	irq_nfc: irq_nfc {
+		compatible = "mediatek,irq_nfc-eint";
+	};
+	/* NFC end */
+
+	subpmic_pmu_eint: mt6360_pmu_eint {
+	};
+
+	touch: touch {
+		compatible = "mediatek,touch";
+	};
+
+	tcpc_pd: tcpc_pd {
+	};
+
+	smart_pa: smart_pa {
+	};
+
+	disp_leds {
+		compatible = "mediatek,disp-leds";
+
+		backlight {
+			label = "lcd-backlight";
+			max-brightness = <2047>;
+			led-bits = <11>;
+			trans-bits = <11>;
+			default-state = "on";
+		};
+	};
+
+	pwmleds {
+		compatible = "mediatek,pwm-leds";
+
+		backlight {
+			label = "lcd-backlight";
+			pwms = <&disp_pwm 0 39385>;
+			max-brightness = <255>;
+			pwm-names = "lcd-backlight";
+		};
+	};
+
+	nfc_default: nfc_default {
+	};
+
+	nfc_int_active: nfc_int_active {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO11__FUNC_GPIO11>;
+			slew-rate = <0>;
+			drive-strength = <MTK_DRIVE_2mA>;
+			bias-pull-up;
+		};
+	};
+
+	nfc_int_suspend: nfc_int_suspend {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO11__FUNC_GPIO11>;
+			slew-rate = <0>;
+			drive-strength = <MTK_DRIVE_2mA>;
+			bias-pull-up;
+		};
+	};
+
+	nfc_enable_active: nfc_enable_active {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO10__FUNC_GPIO10>;
+			slew-rate = <1>;
+			output-high;
+			drive-strength = <MTK_DRIVE_2mA>;
+			bias-pull-up=<MTK_PUPD_SET_R1R0_11>;
+		};
+	};
+
+	nfc_enable_suspend: nfc_enable_suspend {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO10__FUNC_GPIO10>;
+			slew-rate = <1>;
+			drive-strength = <MTK_DRIVE_2mA>;
+			bias-disable;
+		};
+	};
+};
+
+/* The 4.19 vendor tree put always_pull_low_off on its top-level mt6359_snd
+ * node.  The 5.10 codec is instantiated by the mt6397 MFD from the
+ * "mediatek,mt6359p-sound" child of the PMIC, so the property has to live
+ * there instead. */
+&mt6359codec {
+	always_pull_low_off = <1>;
+};
+
+/* mt6315 regulator definitions */
+#include "mediatek/mt6315_s6.dtsi"
+#include "mediatek/mt6315_s7.dtsi"
+#include "mediatek/mt6315_s3.dtsi"

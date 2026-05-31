@@ -162,12 +162,31 @@ ifndef KBUILD_MIXED_TREE
 all:	Image.gz
 endif
 
+ifeq ($(CONFIG_BUILD_ARM64_DTB_OVERLAY_IMAGE),y)
+export DTC_FLAGS := -@
+endif
+
+KBUILD_DTBO_IMG := dtbo.img
+
 
 Image: vmlinux
 	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
 
 Image.%: Image
 	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
+
+Image-dtb: vmlinux scripts dtbs
+	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
+
+Image.gz-dtb: vmlinux scripts dtbs Image.gz
+	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
+
+ifeq ($(CONFIG_BUILD_ARM64_DTB_OVERLAY_IMAGE),y)
+$(KBUILD_DTBO_IMG): dtbs
+	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
+
+all: $(KBUILD_DTBO_IMG)
+endif
 
 zinstall install:
 	$(Q)$(MAKE) $(build)=$(boot) $@

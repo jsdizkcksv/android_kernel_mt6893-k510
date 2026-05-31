@@ -698,23 +698,33 @@
 			compatible = "mediatek,reserve-memory-mcupm_share";
 			no-map;
 			status = "okay";
-#if defined(CONFIG_MTK_GMO_RAM_OPTIMIZE) || defined(CONFIG_MTK_MET_MEM_ALLOC)
-			size = <0 0x210000>; /* 2M + 64K */
-#else
-			size = <0 0x610000>; /* 6M + 64K */
-#endif
+			size = <0 0x200000>; /* 2M */
 			alignment = <0 0x10000>;
 			alloc-ranges = <0 0x40000000 0 0x60000000>;
+		};
+
+		/*
+		 * The 4.19 vendor tree selected this node's size from
+		 * CONFIG_MTK_SEC_VIDEO_PATH_SUPPORT / CONFIG_MTK_CAM_SECURITY_SUPPORT.
+		 * The 5.10 tree defines neither symbol, so the branch the shipping
+		 * firmware was built with is written out directly.
+		 */
+		soter-shared-mem {
+			compatible = "microtrust,shared_mem";
+			no-map;
+			size = <0 0xc00000>;
+			alignment = <0 0x1000000>;
+			alloc-ranges = <0 0x40000000 0 0x50000000>;
 		};
 
 		reserve-memory-sspm_share {
 			compatible = "mediatek,reserve-memory-sspm_share";
 			no-map;
 			status = "okay";
-#if defined(CONFIG_MTK_MET_MEM_ALLOC)
+#if defined(CONFIG_MTK_GMO_RAM_OPTIMIZE) || defined(CONFIG_MTK_MET_MEM_ALLOC)
 			size = <0 0x110000>; /* 1M + 64K */
 #else
-			size = <0 0x510000>; /* 5M + 64K */
+			size = <0 0x910000>; /* 9M + 64K */
 #endif
 			alignment = <0 0x10000>;
 			alloc-ranges = <0 0x40000000 0 0x60000000>;
@@ -730,7 +740,7 @@
 		reserve-memory-scp_share {
 			compatible = "mediatek,reserve-memory-scp_share";
 			no-map;
-			size = <0 0x00330000>; /*3 MB share mem size */
+			size = <0 0x00500000>; /* 5 MB share mem size */
 			alignment = <0 0x1000000>;
 			alloc-ranges = <0 0x50000000 0 0x40000000>;
 		};
@@ -2794,6 +2804,7 @@
 			compatible = "mediatek,mt6893-audiosys", "syscon";
 			reg = <0 0x11210000 0 0x2000>;
 			#clock-cells = <1>;
+			mediatek,btcvsd_snd = <&btcvsd_snd>;
 		};
 
 		afe: mt6885-afe-pcm@11210000 {
@@ -2996,6 +3007,7 @@
 					<0 0>, <0 0>, <0 0>;
 
 			vcc-supply = <&mt6359p_vemc_reg>;
+			vcc-fixed-regulator;
 
 			resets = <&infracfg_rst 2>, <&infracfg_rst 3>,
 				 <&infracfg_rst 4>;
@@ -3175,8 +3187,12 @@
 				#phy-cells = <1>;
 				mediatek,eye-vrt = <6>;
 				mediatek,eye-term = <6>;
-				mediatek,rev6 = <1>;
-				mediatek,discth = <7>;
+				mediatek,rev6 = <3>;
+				mediatek,discth = <15>;
+				mediatek,eye-vrt-host = <6>;
+				mediatek,eye-term-host = <6>;
+				mediatek,rev6-host = <3>;
+				mediatek,eye-src-host = <6>;
 				nvmem-cells = <&u2_phy_data>;
 				nvmem-cell-names = "intr_cal";
 				nvmem-cell-masks = <0x1f>;
@@ -7859,8 +7875,8 @@
 				<1>, /*MTK_DRM_OPT_ESD_CHECK_RECOVERY*/
 				<1>, /*MTK_DRM_OPT_ESD_CHECK_SWITCH*/
 				<1>, /*MTK_DRM_OPT_PRESENT_FENCE*/
-				<0>, /*MTK_DRM_OPT_RDMA_UNDERFLOW_AEE*/
-				<0>, /*MTK_DRM_OPT_DSI_UNDERRUN_AEE*/
+				<1>, /*MTK_DRM_OPT_RDMA_UNDERFLOW_AEE*/
+				<1>, /*MTK_DRM_OPT_DSI_UNDERRUN_AEE*/
 				<1>, /*MTK_DRM_OPT_HRT*/
 				<1>, /*MTK_DRM_OPT_HRT_MODE*/
 				<0>, /*MTK_DRM_OPT_DELAYED_TRIGGER*/
@@ -7869,7 +7885,7 @@
 				<1>, /*MTK_DRM_OPT_RPO*/
 				<0>, /*MTK_DRM_OPT_DUAL_PIPE*/
 				<0>, /*MTK_DRM_OPT_DC_BY_HRT*/
-				<1>, /*MTK_DRM_OPT_OVL_WCG*/
+				<0>, /*MTK_DRM_OPT_OVL_WCG*/
 				<0>, /*MTK_DRM_OPT_OVL_SBCH*/
 				<1>, /*MTK_DRM_OPT_COMMIT_NO_WAIT_VBLANK*/
 				<0>, /*MTK_DRM_OPT_MET*/
@@ -7881,7 +7897,7 @@
 				<0>, /*MTK_DRM_OPT_VDS_PATH_SWITCH*/
 				<0>, /*MTK_DRM_OPT_LAYER_REC*/
 				<1>, /*MTK_DRM_OPT_CLEAR_LAYER*/
-				<1>, /*MTK_DRM_OPT_LFR*/
+				<0>, /*MTK_DRM_OPT_LFR*/
 				<0>, /*MTK_DRM_OPT_SF_PF*/
 				<1>, /*MTK_DRM_OPT_DYN_MIPI_CHANGE*/
 				<1>, /*MTK_DRM_OPT_PRIM_DUAL_PIPE*/
@@ -8484,7 +8500,14 @@
 			memory-region = <&consys_mem>;
 		};
 
-		clock_buffer_ctrl: clock_buffer_ctrl {
+		/*
+		 * The 4.19 vendor tree named this node "pmic_clock_buffer_ctrl"
+		 * (compatible "mediatek,pmic_clock_buffer") and that is the label the
+		 * shipping AGATE DTBO patches in its clk-buf fragment.  Keep the old
+		 * label as an alias so the overlay still resolves; the properties it
+		 * writes are the "mediatek,clkbuf-*" ones this node already carries.
+		 */
+		pmic_clock_buffer_ctrl: clock_buffer_ctrl: clock_buffer_ctrl {
 			compatible = "mediatek,clock_buffer_ctrl";
 			mediatek,clkbuf-quantity = <7>;
 			mediatek,clkbuf-config = <2 1 1 2 0 0 1>;
@@ -8565,29 +8588,29 @@
 	snd_audio_dsp: snd_audio_dsp {
 		compatible = "mediatek,snd_audio_dsp";
 		mtk_dsp_voip = <0x1f 0xffffffff 0xffffffff 0xffffffff 0x30000>;
-		mtk_dsp_primary = <0x5 0xffffffff 0xffffffff \
+		mtk_dsp_primary = <0x1 0xffffffff 0xffffffff \
 				   0xffffffff 0x30000>;
-		mtk_dsp_offload = <0x1d 0xffffffff 0xffffffff \
+		mtk_dsp_offload = <0x0 0xffffffff 0xffffffff \
 				   0xffffffff 0x400000>;
-		mtk_dsp_deep = <0x5 0xffffffff 0xffffffff 0xffffffff 0x30000>;
+		mtk_dsp_deep = <0x1 0xffffffff 0xffffffff 0xffffffff 0x30000>;
 		mtk_dsp_playback = <0x1 0x4 0xffffffff 0x14 0x30000>;
 		mtk_dsp_music = <0x1 0xffffffff 0xffffffff 0xffffffff 0x0>;
 		mtk_dsp_capture1 = <0x1 0xffffffff 0xd 0x13 0x20000>;
 		mtk_dsp_a2dp = <0x1 0xffffffff 0xffffffff 0xffffffff 0x40000>;
 		mtk_dsp_bledl = <0x1 0xffffffff 0xffffffff 0xffffffff 0x30000>;
 		mtk_dsp_dataprovider = <0x0 0xffffffff 0xf 0xffffffff 0x30000>;
-		mtk_dsp_call_final = <0x5 0x4 0x10 0x14 0x18000>;
-		mtk_dsp_fast = <0x5 0xffffffff 0xffffffff 0xffffffff 0x5000>;
+		mtk_dsp_call_final = <0x0 0x0 0x10 0x14 0x18000>;
+		mtk_dsp_fast = <0x1 0xffffffff 0xffffffff 0xffffffff 0x3000>;
 		mtk_dsp_ktv = <0x1 0x8 0x12 0xffffffff 0x10000>;
 		mtk_dsp_capture_raw = <0x1 0xffffffff 0xffffffff 0xffffffff 0x20000>;
 		mtk_dsp_fm = <0x1 0xffffffff 0x10 0xffffffff 0x10000>;
 		mtk_dsp_ver = <0x1>;
-		swdsp_smartpa_process_enable = <0x5>;
+		swdsp_smartpa_process_enable = <0x0>;
 		mtk_dsp_mem_afe = <0x1 0x40000>;
 	};
 
 	goodix_fp: fingerprint {
-		compatible = "mediatek,goodix-fp";
+		compatible = "mediatek,fpc1022_irq", "mediatek,goodix-fp";
 	};
 
 	/* feature: $enable */
