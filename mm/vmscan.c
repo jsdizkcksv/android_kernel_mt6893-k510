@@ -4181,6 +4181,63 @@ unsigned long shrink_all_memory(unsigned long nr_to_reclaim)
 }
 #endif /* CONFIG_HIBERNATION */
 
+#ifdef CONFIG_RTMM
+/*
+* reclaim anon/file pages from global lru
+*
+* TODO: merge with shrink_all_memory()??
+*/
+unsigned long reclaim_global(unsigned long nr_to_reclaim)
+{
+	struct reclaim_state reclaim_state;
+	struct scan_control sc = {
+		.nr_to_reclaim = max(nr_to_reclaim, SWAP_CLUSTER_MAX),
+		.gfp_mask = GFP_HIGHUSER_MOVABLE,
+		.reclaim_idx = MAX_NR_ZONES - 1,
+		.order = 0,
+		.priority = DEF_PRIORITY,
+		.may_writepage = 1,
+		.may_unmap = 1,
+		.may_swap = 1,
+	};
+  	struct zonelist *zonelist = node_zonelist(numa_node_id(), sc.gfp_mask);
+  	struct task_struct *p = current;
+  	unsigned long nr_reclaimed;
+
+  	p->flags |= PF_MEMALLOC;
+  	fs_reclaim_acquire(sc.gfp_mask);
+  	reclaim_state.reclaimed_slab = 0;
+  	p->reclaim_state = &reclaim_state;
+
+  	nr_reclaimed = do_try_to_free_pages(zonelist, &sc);
+
+  	p->reclaim_state = NULL;
+  	fs_reclaim_release(sc.gfp_mask);
+  	p->flags &= ~PF_MEMALLOC;
+  	return nr_reclaimed;
+}
+ #endif
+/* It's optimal to keep kswapds on the same CPUs as their memory, but
+   not required for correctness.  So if the last cpu in a node goes
+   away, we get changed to run anywhere: as the first one comes back,
+   restore their cpu bindings. */
+static int kswapd_cpu_online(unsigned int cpu)
+{
+	int nid;
+
+	for_each_node_state(nid, N_MEMORY) {
+		pg_data_t *pgdat = NODE_DATA(nid);
+		const struct cpumask *mask;
+
+		mask = cpumask_of_node(pgdat->node_id);
+
+		if (cpumask_any_and(cpu_online_mask, mask) < nr_cpu_ids)
+			/* One of our CPUs online: restore mask */
+			set_cpus_allowed_ptr(pgdat->kswapd, mask);
+	}
+	return 0;
+}
+
 /*
  * This kswapd start function will be called by init and node-hot-add.
  * On node-hot-add, kswapd will moved to proper cpus if cpus are hot-added.
