@@ -418,6 +418,28 @@ TRACE_EVENT(binder_return,
 			  "unknown")
 );
 
+DECLARE_TRACE(binder_alloc_new_buf_locked_hook,
+	TP_PROTO(size_t size, struct binder_alloc *alloc, int is_async),
+	TP_ARGS(size, alloc, is_async));
+
+DECLARE_TRACE(binder_reply_hook,
+	TP_PROTO(struct binder_proc *target_proc, struct binder_proc *proc,
+		struct binder_thread *thread, struct binder_transaction_data *tr),
+	TP_ARGS(target_proc, proc, thread, tr));
+
+DECLARE_TRACE(binder_trans_hook,
+	TP_PROTO(struct binder_proc *target_proc, struct binder_proc *proc,
+		struct binder_thread *thread, struct binder_transaction_data *tr),
+	TP_ARGS(target_proc, proc, thread, tr));
+
+DECLARE_TRACE(binder_wait_for_work_hook,
+	TP_PROTO(bool do_proc_work, struct binder_thread *tsk, struct binder_proc *proc),
+	TP_ARGS(do_proc_work, tsk, proc));
+
+DECLARE_TRACE(binder_preset_hook,
+	TP_PROTO(struct hlist_head *hhead, struct mutex *lock),
+	TP_ARGS(hhead, lock));
+
 #endif /* _BINDER_TRACE_H */
 
 #undef TRACE_INCLUDE_PATH
