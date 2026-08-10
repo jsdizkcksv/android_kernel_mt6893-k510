@@ -2845,23 +2845,6 @@ static int bq2597x_charger_probe(struct i2c_client *client,
 	struct device_node *node = client->dev.of_node;
 	int ret = 0;
 
-	ret = i2c_smbus_read_byte_data(client, BQ2597X_REG_13);
-	if (ret < 0) {
-		ret = i2c_smbus_read_byte_data(client, BQ2597X_REG_13);
-		if (ret < 0) {
-			if (!strcmp(client->name, "bq2597x-master")) {
-				client->addr = 0x66;
-			} else if (!strcmp(client->name, "bq2597x-slave")) {
-				client->addr = 0x65;
-			}
-			ret = i2c_smbus_read_byte_data(client, BQ2597X_REG_13);
-			if (ret < 0) {
-				bq_err("No bq2597x device found!\n");
-				return -ENODEV;
-			}
-		}
-	}
-
 	bq = devm_kzalloc(&client->dev, sizeof(struct bq2597x), GFP_KERNEL);
 	if (!bq)
 		return -ENOMEM;
@@ -2880,6 +2863,23 @@ static int bq2597x_charger_probe(struct i2c_client *client,
 	bq->irq_waiting = false;
 	bq->hv_charge_enable = 1;
 	bq->bypass_mode_enable = 0;
+
+	ret = i2c_smbus_read_byte_data(client, BQ2597X_REG_13);
+	if (ret < 0) {
+		ret = i2c_smbus_read_byte_data(client, BQ2597X_REG_13);
+		if (ret < 0) {
+			if (!strcmp(client->name, "bq2597x-master")) {
+				client->addr = 0x66;
+			} else if (!strcmp(client->name, "bq2597x-slave")) {
+				client->addr = 0x65;
+			}
+			ret = i2c_smbus_read_byte_data(client, BQ2597X_REG_13);
+			if (ret < 0) {
+				bq_err("No bq2597x device found!\n");
+				return -ENODEV;
+			}
+		}
+	}
 
 	ret = bq2597x_detect_device(bq);
 	if (ret) {
