@@ -1287,7 +1287,7 @@
 		interrupts = <24 IRQ_TYPE_EDGE_FALLING>;
 		interrupt-names = "IRQB";
 		mt6360_chg: chg {
-			compatible = "mediatek,mt6360_chg";
+			compatible = "mediatek,mt6360_pmu_chg";
 			vinovp = <14500000>;
 			io-channels = <&mt6360_adc 0>, <&mt6360_adc 1>,
 				      <&mt6360_adc 3>, <&mt6360_adc 4>,
@@ -1324,7 +1324,7 @@
 			};
 		};
 		mt6360_adc: adc {
-			compatible = "mediatek,mt6360_adc";
+			compatible = "mediatek,mt6360_pmu_adc";
 			#io-channel-cells = <1>;
 		};
 		fled {
@@ -1351,6 +1351,31 @@
 			 * 750000~1500000uA, 12500uA/step
 			 */
 			fled2_strb_cur = <800000>;
+		};
+		core {
+			compatible = "mediatek,mt6360_pmu_core";
+			interrupts = <65 0>, <66 0>, <67 0>,
+				     <68 0>, <69 0>, <70 0>,
+				     <71 0>;
+			interrupt-names = "ap_wdtrst_evt",
+					  "en_evt",
+					  "qonb_rst_evt",
+					  "mrstb_evt",
+					  "otp_evt",
+					  "vddaov_evt",
+					  "sysuv_evt";
+			mren = <1>;
+			apwdtrst_en = <1>;
+			cc_open_sel = <3>;
+			i2c_cc_open_tsel = <1>;
+			ldo5_otp_en = <0>;
+		};
+		rgbled {
+			compatible = "mediatek,mt6360_pmu_rgbled";
+			mt,led_name = "red", "green",
+				      "blue", "mt6360_pmu_led4";
+			mt,led_default_trigger = "cc_mode", "cc_mode",
+						 "cc_mode", "none";
 		};
 		mt6360_led: led {
 			compatible = "mediatek,mt6360_led";
