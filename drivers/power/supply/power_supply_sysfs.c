@@ -314,13 +314,8 @@ static ssize_t power_supply_show_property(struct device *dev,
 
 	switch (psp) {
 	case POWER_SUPPLY_PROP_USB_TYPE:
-<<<<<<< ours(5.10)
 		ret = power_supply_show_usb_type(dev, psy->desc,
 						&value, buf);
-=======
-		ret = power_supply_show_usb_type(dev, psy->desc->usb_types,
-						 psy->desc->num_usb_types,
-						 &value, buf);
 		break;
 	case POWER_SUPPLY_PROP_SCOPE:
 		ret = sprintf(buf, "%s\n",
@@ -330,23 +325,25 @@ static ssize_t power_supply_show_property(struct device *dev,
 		ret = sprintf(buf, "%s\n",
 			      power_supply_usbc_text[value.intval]);
 		break;
-#ifndef CONFIG_PISSARRO_CHARGER
-	case  POWER_SUPPLY_PROP_TYPEC_POWER_ROLE:
-		return scnprintf(buf, PAGE_SIZE, "%s\n",
-			       power_supply_usbc_pr_text[value.intval]);
-#ifdef CONFIG_XMUSB350_DET_CHG
-	case  POWER_SUPPLY_PROP_QC35_VID:
-		return scnprintf(buf, PAGE_SIZE, "%02x%02x%02x%02x\n",
-			       value.arrayval[0], value.arrayval[1], value.arrayval[2], value.arrayval[3]);
-	case POWER_SUPPLY_PROP_QC35_VERSION:
-		return scnprintf(buf, PAGE_SIZE, "%02x%02x\n",
-			       value.arrayval[0], value.arrayval[1]);
-#endif
-#endif
+	case POWER_SUPPLY_PROP_TYPEC_POWER_ROLE:
+		ret = sprintf(buf, "%s\n",
+			      power_supply_usbc_pr_text[value.intval]);
+		break;
 	case POWER_SUPPLY_PROP_TYPEC_SRC_RP:
 		ret = sprintf(buf, "%s\n",
 			      power_supply_typec_src_rp_text[value.intval]);
 		break;
+#ifdef CONFIG_XMUSB350_DET_CHG
+	case POWER_SUPPLY_PROP_QC35_VID:
+		ret = scnprintf(buf, PAGE_SIZE, "%02x%02x%02x%02x\n",
+			       value.arrayval[0], value.arrayval[1],
+			       value.arrayval[2], value.arrayval[3]);
+		break;
+	case POWER_SUPPLY_PROP_QC35_VERSION:
+		ret = scnprintf(buf, PAGE_SIZE, "%02x%02x\n",
+			       value.arrayval[0], value.arrayval[1]);
+		break;
+#endif
 	case POWER_SUPPLY_PROP_DIE_HEALTH:
 	case POWER_SUPPLY_PROP_SKIN_HEALTH:
 	case POWER_SUPPLY_PROP_CONNECTOR_HEALTH:
@@ -355,7 +352,6 @@ static ssize_t power_supply_show_property(struct device *dev,
 		break;
 	case POWER_SUPPLY_PROP_CHARGE_COUNTER_EXT:
 		ret = sprintf(buf, "%lld\n", value.int64val);
->>>>>>> theirs(4.19)
 		break;
 	case POWER_SUPPLY_PROP_MODEL_NAME ... POWER_SUPPLY_PROP_SERIAL_NUMBER:
 		ret = sprintf(buf, "%s\n", value.strval);
@@ -363,7 +359,6 @@ static ssize_t power_supply_show_property(struct device *dev,
 	default:
 		ret = sprintf(buf, "%d\n", value.intval);
 	}
-
 	return ret;
 }
 
