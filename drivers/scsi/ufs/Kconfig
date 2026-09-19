@@ -196,13 +196,13 @@ config SCSI_UFS_EXYNOS
 config SCSI_UFS_FEATURE
 	bool "UFS feature activate"
 	depends on SCSI_UFSHCD
-	---help---
+	help
 	UFS feature activate such as hpb, tw and etc.
 
 config SCSI_UFS_TW
 	bool "UFS Turbo Write support"
 	depends on SCSI_UFSHCD && SCSI_UFS_FEATURE
-	---help---
+	help
 	UFS TW Feature Enable
 
 config SCSI_UFS_TW_IGNORE_GUARANTEE_BIT

@@ -7,7 +7,7 @@ menu "Fingerprint support"
 config FPC_FINGERPRINT
         bool "fpc"
         depends on INPUT
-        ---help---
+        help
           Say Y here if you want to enable fpc
 
 config MTK_FINGERPRINT_SUPPORT

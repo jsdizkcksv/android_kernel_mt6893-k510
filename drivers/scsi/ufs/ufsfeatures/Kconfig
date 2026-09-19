@@ -6,5 +6,5 @@ config CLD
        bool "UFS CLD"
        depends on SCSI_UFSHCD  && SCSI_UFS_FEATURE
        default n
-       ---help---
+       help
 	UFS CLD Feature Enable
