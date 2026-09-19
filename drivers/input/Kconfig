@@ -213,3 +213,4 @@ endmenu
 
 endmenu
 
+source "drivers/input/fingerprint/Kconfig"

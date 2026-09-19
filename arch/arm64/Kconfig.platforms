@@ -149,6 +149,13 @@ config ARCH_MEDIATEK
 	  This enables support for MediaTek MT27xx, MT65xx, MT76xx
 	  & MT81xx ARMv8 SoCs
 
+config MACH_MT6893
+	bool "MediaTek MT6893"
+	depends on ARCH_MEDIATEK
+	help
+	  This enables support for the MediaTek MT6893 SoC (Dimensity 1200),
+	  used by the Xiaomi agate/ares family.
+
 config ARCH_MESON
 	bool "Amlogic Platforms"
 	select COMMON_CLK

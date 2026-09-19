@@ -20,6 +20,7 @@
 #include <linux/gfp.h>
 #include <linux/kernel_stat.h>
 #include <linux/swap.h>
+#include <linux/cpuhotplug.h>
 #include <linux/pagemap.h>
 #include <linux/init.h>
 #include <linux/highmem.h>
@@ -4285,11 +4286,15 @@ void kswapd_stop(int nid)
 
 static int __init kswapd_init(void)
 {
-	int nid;
+	int nid, ret;
 
 	swap_setup();
 	for_each_node_state(nid, N_MEMORY)
- 		kswapd_run(nid);
+		kswapd_run(nid);
+	ret = cpuhp_setup_state_nocalls(CPUHP_AP_ONLINE_DYN,
+					"mm/vmscan:online", kswapd_cpu_online,
+					NULL);
+	WARN_ON(ret < 0);
 	return 0;
 }
 
