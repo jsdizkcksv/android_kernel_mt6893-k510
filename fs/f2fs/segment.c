@@ -526,8 +526,6 @@ void f2fs_balance_fs(struct f2fs_sb_info *sbi, bool need)
 		} else {
 			f2fs_down_write(&sbi->gc_lock);
 			f2fs_gc(sbi, false, false, false, NULL_SEGNO);
-			down_write(&sbi->gc_lock);
-			f2fs_gc(sbi, false, false, NULL_SEGNO);
 		}
 	}
 }

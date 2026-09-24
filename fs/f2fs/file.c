@@ -31,6 +31,7 @@
 #include "acl.h"
 #include "gc.h"
 #include <trace/events/f2fs.h>
+#include <trace/events/android_fs.h>
 #include <uapi/linux/f2fs.h>
 
 static vm_fault_t f2fs_filemap_fault(struct vm_fault *vmf)
@@ -406,7 +407,6 @@ out:
 	}
 
 	trace_f2fs_sync_file_exit(inode, cp_reason, datasync, ret);
-	f2fs_trace_ios(NULL, 1);
 	stat_inc_sync_file_count(sbi);
 	trace_android_fs_fsync_end(inode, start, end - start);
 

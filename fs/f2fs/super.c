@@ -1561,7 +1561,6 @@ int f2fs_sync_fs(struct super_block *sb, int sync)
 
 	 if (sync)
 		err = f2fs_issue_checkpoint(sbi);
-	f2fs_trace_ios(NULL, 1);
 
 	return err;
 }
@@ -4103,7 +4102,6 @@ try_onemore:
 	/* setup checkpoint request control and start checkpoint issue thread */
 	f2fs_init_ckpt_req_control(sbi);
 	if (!f2fs_readonly(sb) && !test_opt(sbi, DISABLE_CHECKPOINT) &&
-	 if (!test_opt(sbi, DISABLE_CHECKPOINT) &&
 			test_opt(sbi, MERGE_CHECKPOINT)) {
 		err = f2fs_start_ckpt_thread(sbi);
 		if (err) {

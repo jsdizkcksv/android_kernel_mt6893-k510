@@ -27,7 +27,7 @@
 #include "mtk_disp_gamma.h"
 #include "platform/mtk_drm_6789.h"
 #ifdef CONFIG_MTK_SMI_EXT
-#include "smi_public.h"
+#include <soc/mediatek/smi.h>
 #endif
 
 #define DISP_REG_OVL0_MOUT_EN(data) (data->ovl0_mout_en)
@@ -13383,7 +13383,7 @@ void mmsys_config_dump_analysis_mt6983(void __iomem *config_regs)
 #ifdef CONFIG_MTK_SMI_EXT
 	if (greq0 || greq1) {
 		if (!in_interrupt())
-			smi_debug_bus_hang_detect(false, "DISP");
+			mtk_smi_dbg_hang_detect("DISP");
 		else
 			DDPDUMP("%s, Can't smi dump in IRQ\n", __func__);
 	}
@@ -13705,7 +13705,7 @@ void mmsys_config_dump_analysis_mt6873(void __iomem *config_regs)
 #ifdef CONFIG_MTK_SMI_EXT
 	if (greq0 || greq1) {
 		if (!in_interrupt())
-			smi_debug_bus_hang_detect(false, "DISP");
+			mtk_smi_dbg_hang_detect("DISP");
 		else
 			DDPDUMP("%s, Can't smi dump in IRQ\n", __func__);
 	}
@@ -13857,7 +13857,7 @@ void mmsys_config_dump_analysis_mt6853(void __iomem *config_regs)
 #ifdef CONFIG_MTK_SMI_EXT
 	if (greq0 || greq1) {
 		if (!in_interrupt())
-			smi_debug_bus_hang_detect(false, "DISP");
+			mtk_smi_dbg_hang_detect("DISP");
 		else
 			DDPDUMP("%s, Can't smi dump in IRQ\n", __func__);
 	}
@@ -13969,7 +13969,7 @@ void mmsys_config_dump_analysis_mt6833(void __iomem *config_regs)
 #ifdef CONFIG_MTK_SMI_EXT
 	if (greq0 || greq1) {
 		if (!in_interrupt())
-			smi_debug_bus_hang_detect(false, "DISP");
+			mtk_smi_dbg_hang_detect("DISP");
 		else
 			DDPDUMP("%s, Can't smi dump in IRQ\n", __func__);
 	}
@@ -14131,7 +14131,7 @@ void mmsys_config_dump_analysis_mt6879(void __iomem *config_regs)
 #ifdef CONFIG_MTK_SMI_EXT
 	if (greq0 || greq1) {
 		if (!in_interrupt())
-			smi_debug_bus_hang_detect(false, "DISP");
+			mtk_smi_dbg_hang_detect("DISP");
 		else
 			DDPDUMP("%s, Can't smi dump in IRQ\n", __func__);
 	}
@@ -14293,7 +14293,7 @@ void mmsys_config_dump_analysis_mt6855(void __iomem *config_regs)
 #ifdef CONFIG_MTK_SMI_EXT
 	if (greq0 || greq1) {
 		if (!in_interrupt())
-			smi_debug_bus_hang_detect(false, "DISP");
+			mtk_smi_dbg_hang_detect("DISP");
 		else
 			DDPDUMP("%s, Can't smi dump in IRQ\n", __func__);
 	}

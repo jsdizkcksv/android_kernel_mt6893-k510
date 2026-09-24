@@ -95,7 +95,6 @@ static ssize_t free_segments_show(struct f2fs_attr *a,
 			(unsigned long long)(free_segments(sbi)));
 }
 
-static ssize_t ovp_segments_show(struct f2fs_attr *a,
 static ssize_t reserved_segments_show(struct f2fs_attr *a,
 		struct f2fs_sb_info *sbi, char *buf)
 {
@@ -103,7 +102,7 @@ static ssize_t reserved_segments_show(struct f2fs_attr *a,
 		(unsigned long long)(reserved_segments(sbi)));
 }
 
-static ssize_t lifetime_write_kbytes_show(struct f2fs_attr *a,
+static ssize_t ovp_segments_show(struct f2fs_attr *a,
 		struct f2fs_sb_info *sbi, char *buf)
 {
 	return sprintf(buf, "%llu\n",

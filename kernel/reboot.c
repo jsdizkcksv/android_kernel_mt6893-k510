@@ -261,7 +261,7 @@ void kernel_restart(char *cmd)
 	pr_emerg("%s,      parent pid: %d,      parent thread name:%s\n", __func__, current->parent->pid, current->parent->comm);
 
 
-	kmsg_dump(KMSG_DUMP_RESTART);
+	kmsg_dump(KMSG_DUMP_SHUTDOWN);
 	machine_restart(cmd);
 }
 EXPORT_SYMBOL_GPL(kernel_restart);

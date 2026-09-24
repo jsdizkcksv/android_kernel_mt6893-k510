@@ -218,6 +218,7 @@ static int fw_set_parms(struct net *net, struct tcf_proto *tp,
 			return ret;
 		f->ifindex = ret;
 	}
+#endif /* CONFIG_NET_CLS_IND */
 
 	err = -EINVAL;
 	if (tb[TCA_FW_MASK]) {

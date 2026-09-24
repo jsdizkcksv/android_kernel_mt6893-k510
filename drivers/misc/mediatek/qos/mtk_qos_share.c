@@ -20,14 +20,14 @@ static unsigned long long rec_size;
 
 static void qos_share_sspm_setup(void)
 {
-#if IS_ENABLED(CONFIG_MTK_TINYSYS_SSPM_V2)
+#if IS_ENABLED(CONFIG_MTK_TINYSYS_SSPM_V2) && !IS_ENABLED(CONFIG_MTK_QOS_MT6893)
 	struct qos_ipi_data qos_ipi_d;
 
 	qos_ipi_d.cmd = QOS_IPI_QOS_SHARE_INIT;
 	qos_ipi_d.u.qos_share_init.dram_addr = rec_phys_addr;
 	qos_ipi_d.u.qos_share_init.dram_size = rec_size;
 	qos_ipi_to_sspm_command(&qos_ipi_d, 3);
-#elif IS_ENABLED(CONFIG_MTK_TINYSYS_SSPM_V3)
+#elif IS_ENABLED(CONFIG_MTK_TINYSYS_SSPM_V3) || IS_ENABLED(CONFIG_MTK_QOS_MT6893)
 	struct qos_ipi_data qos_ipi_d;
 
 	qos_ipi_d.cmd = QOS_IPI_QOS_SHARE_INIT;

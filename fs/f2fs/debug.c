@@ -108,17 +108,10 @@ static void update_general_status(struct f2fs_sb_info *sbi)
 	si->allocated_data_blocks = atomic64_read(&sbi->allocated_data_blocks);
 
 	/* validation check of the segment numbers */
-	si->hit_cached = atomic64_read(&sbi->read_hit_cached);
 	si->sync_file_total = atomic64_read(&sbi->sync_file_count);
 	for (i = 0; i < NR_CP_REASON_TYPE; i++)
 		si->cp_reason_total[i] = atomic64_read(&sbi->cp_reason_count[i]);
 
-	si->hit_rbtree = atomic64_read(&sbi->read_hit_rbtree);
-	si->hit_total = si->hit_largest + si->hit_cached + si->hit_rbtree;
-	si->total_ext = atomic64_read(&sbi->total_hit_ext);
-	si->ext_tree = atomic_read(&sbi->total_ext_tree);
-	si->zombie_tree = atomic_read(&sbi->total_zombie_tree);
-	si->ext_node = atomic_read(&sbi->total_ext_node);
 	si->ndirty_node = get_pages(sbi, F2FS_DIRTY_NODES);
 	si->ndirty_dent = get_pages(sbi, F2FS_DIRTY_DENTS);
 	si->ndirty_meta = get_pages(sbi, F2FS_DIRTY_META);
@@ -494,8 +487,6 @@ static int stat_show(struct seq_file *s, void *v)
 				si->nr_queued_ckpt, si->nr_issued_ckpt,
 				si->nr_total_ckpt, si->cur_ckpt_time,
 				si->peak_ckpt_time);
-		seq_printf(s, "GC calls: %d (BG: %d)\n",
-			   si->call_count, si->bg_gc);
 		seq_printf(s, "GC calls: %d (BG: %d) (Boost: %d)\n",
 			   si->call_count, si->bg_gc, si->gc_booster);
 		seq_printf(s, "  - data segments : %d (%d)\n",
@@ -663,7 +654,6 @@ int f2fs_build_stats(struct f2fs_sb_info *sbi)
 
 	/* read extent_cache only */
 	atomic64_set(&sbi->read_hit_largest, 0);
-	atomic64_set(&sbi->read_hit_cached, 0);
 	atomic64_set(&sbi->sync_file_count, 0);
 	for (i = 0; i < NR_CP_REASON_TYPE; i++)
 		atomic64_set(&sbi->cp_reason_count[i], 0);
@@ -708,8 +698,8 @@ void __init f2fs_create_root_stats(void)
 			    &stat_fops);
 #endif
 	if (f2fs_proc_root)
-		proc_create_data("status", S_IRUGO, f2fs_proc_root,
-				&stat_fops, NULL);
+		proc_create_single("status", S_IRUGO, f2fs_proc_root,
+				stat_show);
 }
 
 void f2fs_destroy_root_stats(void)

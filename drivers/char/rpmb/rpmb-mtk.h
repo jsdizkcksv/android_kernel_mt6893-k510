@@ -15,6 +15,7 @@ int mmc_rpmb_register(struct mmc_host *mmc);
 int mmc_rpmb_register(...);
 #endif
 
+#if (defined(CONFIG_MICROTRUST_TEE_SUPPORT))
 #define RPMB_IOCTL_SOTER_WRITE_DATA   5
 #define RPMB_IOCTL_SOTER_READ_DATA    6
 #define RPMB_IOCTL_SOTER_GET_CNT      7

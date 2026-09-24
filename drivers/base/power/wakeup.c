@@ -1158,7 +1158,6 @@ void pm_wakep_autosleep_enabled(bool set)
 }
 #endif /* CONFIG_PM_AUTOSLEEP */
 
-static struct dentry *wakeup_sources_stats_dentry;
 
 #ifdef CONFIG_XM_POWER_DEBUG
 void global_print_active_locks_debug(struct wakeup_source *ws)

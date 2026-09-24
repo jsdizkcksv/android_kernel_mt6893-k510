@@ -31,7 +31,7 @@ static inline bool should_break_gc(struct f2fs_sb_info *sbi)
 	if (freezing(current) || kthread_should_stop())
 		return true;
 
-	if (sbi->gc_mode == GC_URGENT)
+	if (sbi->gc_mode == GC_URGENT_HIGH || sbi->gc_mode == GC_URGENT_MID)
 		return false;
 
 	return !is_idle(sbi, GC_TIME);
@@ -43,7 +43,6 @@ static int gc_thread_func(void *data)
 	struct f2fs_gc_kthread *gc_th = sbi->gc_thread;
 	wait_queue_head_t *wq = &sbi->gc_thread->gc_wait_queue_head;
 	wait_queue_head_t *fggc_wq = &sbi->gc_thread->fggc_wq;
-	unsigned int wait_ms;
 	unsigned int wait_ms, gc_count, i;
 	bool boost;
 
@@ -143,7 +142,7 @@ do_gc:
 			 * f2fs_gc will release gc_lock before return,
 			 * so we need to relock it before calling f2fs_gc.
 			 */
-			if (i && !down_write_trylock(&sbi->gc_lock)) {
+			if (i && !f2fs_down_write_trylock(&sbi->gc_lock)) {
 				stat_other_skip_bggc_count(sbi);
 				break;
 			}
@@ -158,7 +157,7 @@ do_gc:
 				sync_mode = false;
 
 			/* if return value is not 0, no victim was selected */
-			if (f2fs_gc(sbi, sync_mode, !foreground, NULL_SEGNO)) {
+			if (f2fs_gc(sbi, sync_mode, !foreground, false, NULL_SEGNO)) {
 				wait_ms = gc_th->no_gc_sleep_time;
 				break;
 			}
