@@ -31,7 +31,7 @@
 #include "mtk_camera-videodev2.h"
 
 #ifdef CONFIG_MTK_SMI_EXT
-#include "smi_public.h"
+#include <soc/mediatek/smi.h>
 #endif
 
 #ifdef CONFIG_MTK_IOMMU_V2

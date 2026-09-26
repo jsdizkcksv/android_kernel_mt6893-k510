@@ -375,7 +375,7 @@ static ssize_t fts_driver_test_write(struct file *file, const char __user *buf,
 		goto END;
 	}
 
-	if ((!access_ok(VERIFY_WRITE, buf, count))
+	if ((!access_ok(buf, count))
 	    || copy_from_user(pbuf, buf, count) != 0) {
 		res = ERROR_ALLOC;
 		goto END;
@@ -480,7 +480,7 @@ static ssize_t fts_driver_test_write(struct file *file, const char __user *buf,
 		case CMD_GETLIMITSFILE:
 			if (count - 2 - 1 > 1) {
 				numberParam = 2;
-				sscanf(p, "%100s", path);
+				sscanf(p, "%99s", path);
 			}
 			break;
 
@@ -2433,12 +2433,12 @@ ERROR:
 /**
  * file_operations struct which define the functions for the canonical operation on a device file node (open. read, write etc.)
  */
-static struct file_operations fts_driver_test_ops = {
-	.open = fts_open,
-	.read = seq_read,
-	.write = fts_driver_test_write,
-	.llseek = seq_lseek,
-	.release = seq_release
+static struct proc_ops fts_driver_test_ops = {
+	.proc_open = fts_open,
+	.proc_read = seq_read,
+	.proc_write = fts_driver_test_write,
+	.proc_lseek = seq_lseek,
+	.proc_release = seq_release
 };
 
 /*****************************************************************************/

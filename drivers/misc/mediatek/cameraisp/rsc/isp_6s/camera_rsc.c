@@ -31,7 +31,7 @@
 #include <linux/pm_runtime.h>
 #include <linux/dma-mapping.h>
 #include <linux/dma-buf.h>
-#include <soc/mediatek/smi.h>
+#include "smi_public.h"
 #include <linux/suspend.h>
 #include <linux/rtc.h>
 
@@ -70,7 +70,7 @@
 #endif /* CONFIG_MTK_IOMMU_V2 */
 #if CHECK_SERVICE_IF_0
 #include "mach/pseudo_m4u.h"
-#include <smi_public.h>
+#include "smi_public.h"
 #endif
 #include "../engine_request.h"
 

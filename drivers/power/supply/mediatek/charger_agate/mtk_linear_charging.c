@@ -5,6 +5,7 @@
 
 #include <linux/delay.h>
 #include <linux/device.h>
+#include <linux/timekeeping.h>
 #include <linux/mutex.h>
 #include <linux/of.h>
 #include <linux/platform_device.h>
@@ -165,7 +166,7 @@ static int mtk_linear_charging_plug_in(struct charger_manager *info)
 	algo_data->state = CHR_CC;
 	info->polling_interval = CHARGING_INTERVAL;
 	algo_data->disable_charging = false;
-	get_monotonic_boottime(&algo_data->charging_begin_time);
+	ktime_get_boottime_ts64(&algo_data->charging_begin_time);
 	charger_manager_notifier(info, CHARGER_NOTIFY_START_CHARGING);
 
 	return 0;
@@ -191,7 +192,7 @@ static int mtk_linear_charging_do_charging(struct charger_manager *info,
 	if (en) {
 		algo_data->disable_charging = false;
 		algo_data->state = CHR_CC;
-		get_monotonic_boottime(&algo_data->charging_begin_time);
+		ktime_get_boottime_ts64(&algo_data->charging_begin_time);
 		charger_manager_notifier(info, CHARGER_NOTIFY_NORMAL);
 	} else {
 		algo_data->disable_charging = true;
@@ -231,10 +232,10 @@ static bool charging_full_check(struct charger_manager *info)
 static bool mtk_linear_check_charging_time(struct charger_manager *info)
 {
 	struct linear_charging_alg_data *algo_data = info->algorithm_data;
-	struct timespec time_now;
+	struct timespec64 time_now;
 
 	if (info->enable_sw_safety_timer) {
-		get_monotonic_boottime(&time_now);
+		ktime_get_boottime_ts64(&time_now);
 		chr_debug("%s: begin: %ld, now: %ld\n", __func__,
 			algo_data->charging_begin_time.tv_sec, time_now.tv_sec);
 
@@ -255,7 +256,7 @@ static bool mtk_linear_check_charging_time(struct charger_manager *info)
 static int mtk_linear_chr_cc(struct charger_manager *info)
 {
 	struct linear_charging_alg_data *algo_data = info->algorithm_data;
-	struct timespec time_now, charging_time;
+	struct timespec64 time_now, charging_time;
 	u32 vbat;
 
 	/* check bif */
@@ -267,8 +268,8 @@ static int mtk_linear_chr_cc(struct charger_manager *info)
 		}
 	}
 
-	get_monotonic_boottime(&time_now);
-	charging_time = timespec_sub(time_now, algo_data->charging_begin_time);
+	ktime_get_boottime_ts64(&time_now);
+	charging_time = timespec64_sub(time_now, algo_data->charging_begin_time);
 
 	algo_data->cc_charging_time = charging_time.tv_sec;
 	algo_data->topoff_charging_time = 0;
@@ -281,7 +282,7 @@ static int mtk_linear_chr_cc(struct charger_manager *info)
 	vbat = battery_get_bat_voltage() * 1000; /* uV */
 	if (vbat > algo_data->topoff_voltage) {
 		algo_data->state = CHR_TOPOFF;
-		get_monotonic_boottime(&algo_data->topoff_begin_time);
+		ktime_get_boottime_ts64(&algo_data->topoff_begin_time);
 		pr_notice("enter TOPOFF mode on vbat = %d uV\n", vbat);
 	}
 
@@ -293,7 +294,7 @@ static int mtk_linear_chr_cc(struct charger_manager *info)
 static int mtk_linear_chr_topoff(struct charger_manager *info)
 {
 	struct linear_charging_alg_data *algo_data = info->algorithm_data;
-	struct timespec time_now, charging_time, topoff_time;
+	struct timespec64 time_now, charging_time, topoff_time;
 
 	/* check bif */
 	if (IS_ENABLED(CONFIG_MTK_BIF_SUPPORT)) {
@@ -304,9 +305,9 @@ static int mtk_linear_chr_topoff(struct charger_manager *info)
 		}
 	}
 
-	get_monotonic_boottime(&time_now);
-	charging_time = timespec_sub(time_now, algo_data->charging_begin_time);
-	topoff_time = timespec_sub(time_now, algo_data->topoff_begin_time);
+	ktime_get_boottime_ts64(&time_now);
+	charging_time = timespec64_sub(time_now, algo_data->charging_begin_time);
+	topoff_time = timespec64_sub(time_now, algo_data->topoff_begin_time);
 
 	algo_data->cc_charging_time = 0;
 	algo_data->topoff_charging_time = topoff_time.tv_sec;
@@ -340,7 +341,7 @@ static int mtk_linear_chr_err(struct charger_manager *info)
 			(info->sw_jeita.sm != TEMP_ABOVE_T4)) {
 			info->sw_jeita.error_recovery_flag = true;
 			algo_data->state = CHR_CC;
-			get_monotonic_boottime(&algo_data->charging_begin_time);
+			ktime_get_boottime_ts64(&algo_data->charging_begin_time);
 		}
 	}
 
@@ -382,7 +383,7 @@ static int mtk_linear_chr_full(struct charger_manager *info)
 		algo_data->state = CHR_CC;
 		charger_dev_do_event(info->chg1_dev, EVENT_RECHARGE, 0);
 		info->enable_dynamic_cv = true;
-		get_monotonic_boottime(&algo_data->charging_begin_time);
+		ktime_get_boottime_ts64(&algo_data->charging_begin_time);
 		pr_notice("battery recharging on vbat = %d uV\n", vbat);
 		info->polling_interval = CHARGING_INTERVAL;
 	}

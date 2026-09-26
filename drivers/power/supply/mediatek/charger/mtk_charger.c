@@ -26,6 +26,7 @@
 #include <linux/module.h>	/* For MODULE_ marcros  */
 #include <linux/fs.h>
 #include <linux/device.h>
+#include <linux/timekeeping.h>
 #include <linux/interrupt.h>
 #include <linux/spinlock.h>
 #include <linux/platform_device.h>
@@ -1864,7 +1865,7 @@ static void kpoc_power_off_check(struct charger_manager *info)
 static int charger_pm_event(struct notifier_block *notifier,
 			unsigned long pm_event, void *unused)
 {
-	struct timespec now;
+	struct timespec64 now;
 
 	switch (pm_event) {
 	case PM_SUSPEND_PREPARE:
@@ -1874,9 +1875,9 @@ static int charger_pm_event(struct notifier_block *notifier,
 	case PM_POST_SUSPEND:
 		pinfo->is_suspend = false;
 		chr_debug("%s: enter PM_POST_SUSPEND\n", __func__);
-		get_monotonic_boottime(&now);
+		ktime_get_boottime_ts64(&now);
 
-		if (timespec_compare(&now, &pinfo->endtime) >= 0 &&
+		if (timespec64_compare(&now, &pinfo->endtime) >= 0 &&
 			pinfo->endtime.tv_sec != 0 &&
 			pinfo->endtime.tv_nsec != 0) {
 			chr_err("%s: alarm timeout, wake up charger\n",
@@ -1921,7 +1922,7 @@ static enum alarmtimer_restart
 
 static void mtk_charger_start_timer(struct charger_manager *info)
 {
-	struct timespec time, time_now;
+	struct timespec64 time, time_now;
 	ktime_t ktime;
 	int ret = 0;
 
@@ -1932,10 +1933,10 @@ static void mtk_charger_start_timer(struct charger_manager *info)
 		return;
 	}
 
-	get_monotonic_boottime(&time_now);
+	ktime_get_boottime_ts64(&time_now);
 	time.tv_sec = info->polling_interval;
 	time.tv_nsec = 0;
-	info->endtime = timespec_add(time_now, time);
+	info->endtime = timespec64_add(time_now, time);
 
 	ktime = ktime_set(info->endtime.tv_sec, info->endtime.tv_nsec);
 

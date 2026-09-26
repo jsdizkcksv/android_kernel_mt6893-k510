@@ -382,10 +382,10 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 	return NOTIFY_OK;
 }
 
-static int tcpc_typec_try_role(const struct typec_capability *cap, int role)
+static int tcpc_typec_try_role(struct typec_port *port, int role)
 {
 	struct rt_pd_manager_data *rpmd =
-		container_of(cap, struct rt_pd_manager_data, typec_caps);
+		typec_get_drvdata(port);
 	uint8_t typec_role = TYPEC_ROLE_UNKNOWN;
 
 	dev_info(rpmd->dev, "%s role = %d\n", __func__, role);
@@ -407,12 +407,11 @@ static int tcpc_typec_try_role(const struct typec_capability *cap, int role)
 	return tcpm_typec_change_role_postpone(rpmd->tcpc, typec_role, true);
 }
 
-static int tcpc_typec_dr_set(const struct typec_capability *cap,
-			     enum typec_data_role role)
+static int tcpc_typec_dr_set(struct typec_port *port, enum typec_data_role role)
 {
 	int ret = 0;
 	struct rt_pd_manager_data *rpmd =
-		container_of(cap, struct rt_pd_manager_data, typec_caps);
+		typec_get_drvdata(port);
 	uint8_t data_role = tcpm_inquire_pd_data_role(rpmd->tcpc);
 	bool do_swap = false;
 
@@ -447,12 +446,11 @@ static int tcpc_typec_dr_set(const struct typec_capability *cap,
 	return 0;
 }
 
-static int tcpc_typec_pr_set(const struct typec_capability *cap,
-			     enum typec_role role)
+static int tcpc_typec_pr_set(struct typec_port *port, enum typec_role role)
 {
 	int ret = 0;
 	struct rt_pd_manager_data *rpmd =
-		container_of(cap, struct rt_pd_manager_data, typec_caps);
+		typec_get_drvdata(port);
 	uint8_t power_role = tcpm_inquire_pd_power_role(rpmd->tcpc);
 	bool do_swap = false;
 
@@ -489,12 +487,11 @@ static int tcpc_typec_pr_set(const struct typec_capability *cap,
 	return 0;
 }
 
-static int tcpc_typec_vconn_set(const struct typec_capability *cap,
-				enum typec_role role)
+static int tcpc_typec_vconn_set(struct typec_port *port, enum typec_role role)
 {
 	int ret = 0;
 	struct rt_pd_manager_data *rpmd =
-		container_of(cap, struct rt_pd_manager_data, typec_caps);
+		typec_get_drvdata(port);
 	uint8_t vconn_role = tcpm_inquire_pd_vconn_role(rpmd->tcpc);
 	bool do_swap = false;
 
@@ -527,11 +524,10 @@ static int tcpc_typec_vconn_set(const struct typec_capability *cap,
 	return 0;
 }
 
-static int tcpc_typec_port_type_set(const struct typec_capability *cap,
-				    enum typec_port_type type)
+static int tcpc_typec_port_type_set(struct typec_port *port, enum typec_port_type type)
 {
 	struct rt_pd_manager_data *rpmd =
-		container_of(cap, struct rt_pd_manager_data, typec_caps);
+		typec_get_drvdata(port);
 	bool as_sink = tcpc_typec_is_act_as_sink_role(rpmd->tcpc);
 	uint8_t typec_role = TYPEC_ROLE_UNKNOWN;
 
@@ -550,9 +546,9 @@ static int tcpc_typec_port_type_set(const struct typec_capability *cap,
 			return 0;
 		break;
 	case TYPEC_PORT_DRP:
-		if (cap->prefer_role == TYPEC_SOURCE)
+		if (rpmd->typec_caps.prefer_role == TYPEC_SOURCE)
 			typec_role = TYPEC_ROLE_TRY_SRC;
-		else if (cap->prefer_role == TYPEC_SINK)
+		else if (rpmd->typec_caps.prefer_role == TYPEC_SINK)
 			typec_role = TYPEC_ROLE_TRY_SNK;
 		else
 			typec_role = TYPEC_ROLE_DRP;
@@ -563,6 +559,14 @@ static int tcpc_typec_port_type_set(const struct typec_capability *cap,
 
 	return tcpm_typec_role_swap(rpmd->tcpc);
 }
+
+static const struct typec_operations rpmd_typec_ops = {
+	.try_role = tcpc_typec_try_role,
+	.dr_set = tcpc_typec_dr_set,
+	.pr_set = tcpc_typec_pr_set,
+	.vconn_set = tcpc_typec_vconn_set,
+	.port_type_set = tcpc_typec_port_type_set,
+};
 
 static int typec_init(struct rt_pd_manager_data *rpmd)
 {
@@ -585,11 +589,7 @@ static int typec_init(struct rt_pd_manager_data *rpmd)
 		rpmd->typec_caps.prefer_role = TYPEC_NO_PREFERRED_ROLE;
 		break;
 	}
-	rpmd->typec_caps.try_role = tcpc_typec_try_role;
-	rpmd->typec_caps.dr_set = tcpc_typec_dr_set;
-	rpmd->typec_caps.pr_set = tcpc_typec_pr_set;
-	rpmd->typec_caps.vconn_set = tcpc_typec_vconn_set;
-	rpmd->typec_caps.port_type_set = tcpc_typec_port_type_set;
+	rpmd->typec_caps.ops = &rpmd_typec_ops;
 
 	rpmd->typec_port = typec_register_port(rpmd->dev, &rpmd->typec_caps);
 	if (IS_ERR(rpmd->typec_port)) {

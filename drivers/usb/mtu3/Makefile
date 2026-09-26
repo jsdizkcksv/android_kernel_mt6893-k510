@@ -40,3 +40,4 @@ endif
 ifneq ($(CONFIG_DEBUG_FS),)
 	mtu3-y	+= mtu3_debugfs.o
 endif
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/include

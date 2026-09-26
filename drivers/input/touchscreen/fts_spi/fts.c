@@ -236,7 +236,7 @@ static ssize_t fts_fwupdate_store(struct device *dev,
 	mode[1] = 1;
 
 	/* reading out firmware upgrade parameters */
-	sscanf(buf, "%100s %d %d", path, &mode[0], &mode[1]);
+	sscanf(buf, "%99s %d %d", path, &mode[0], &mode[1]);
 	logError(1, "%s fts_fwupdate_store: mode = %s \n", tag, path);
 
 	ret = flashProcedure(path, mode[0], mode[1]);
@@ -5911,10 +5911,10 @@ static void fts_update_touchmode_data(void)
 	int i, j, ret = 0;
 	u8 set_cmd[10] = {0xc0, 0x05, 0x01, 0x00, 0x78, 0x0f, 0x06, 0x0f, 0x01, 0x06};
 	u8 get_cmd[2] = {0xc0, 0x13};
-	u8 get_value[8] = {0x0,};
+	u8 get_value[8] __maybe_unused = {0x0,};
 	int temp_value = 0;
 	const struct fts_hw_platform_data *bdata = fts_info->board;
-	static expert_mode = false;
+	static bool expert_mode = false;
 
 	ret = wait_event_interruptible_timeout(fts_info->wait_queue, !(fts_info->irq_status ||
 	fts_info->touch_id), msecs_to_jiffies(500));
@@ -6701,7 +6701,7 @@ static int fts_write_charge_status(int status)
 	return res;
 }
 
-static int fts_get_charging_status()
+static int fts_get_charging_status(void)
 {
 #if 0
 	struct power_supply *usb_psy;
@@ -7766,9 +7766,9 @@ out:
 	return retval;
 }
 
-static const struct file_operations fts_selftest_ops = {
-	.read = fts_selftest_read,
-	.write = fts_selftest_write,
+static const struct proc_ops fts_selftest_ops = {
+	.proc_read = fts_selftest_read,
+	.proc_write = fts_selftest_write,
 };
 
 static ssize_t fts_datadump_read(struct file *file, char __user *buf,
@@ -7824,8 +7824,8 @@ out:
 	return cnt1 + cnt2 + cnt3;
 }
 
-static const struct file_operations fts_datadump_ops = {
-	.read = fts_datadump_read,
+static const struct proc_ops fts_datadump_ops = {
+	.proc_read = fts_datadump_read,
 };
 
 #define TP_INFO_MAX_LENGTH 50
@@ -7850,8 +7850,8 @@ static ssize_t fts_fw_version_read(struct file *file, char __user *buf,
 		return cnt;
 }
 
-static const struct file_operations fts_fw_version_ops = {
-	.read = fts_fw_version_read,
+static const struct proc_ops fts_fw_version_ops = {
+	.proc_read = fts_fw_version_read,
 };
 
 static ssize_t fts_lockdown_info_read(struct file *file, char __user *buf,
@@ -7885,8 +7885,8 @@ out:
 		return cnt;
 }
 
-static const struct file_operations fts_lockdown_info_ops = {
-	.read = fts_lockdown_info_read,
+static const struct proc_ops fts_lockdown_info_ops = {
+	.proc_read = fts_lockdown_info_read,
 };
 
 #ifdef CONFIG_PM

@@ -1324,7 +1324,7 @@ static int aw8697_haptic_rtp_init(struct aw8697 *aw8697)
 	unsigned int buf_len = 0;
 	unsigned int period_size = aw8697->ram.base_addr >> 2 ;
 
-	pm_qos_add_request(&pm_qos_req_vb, PM_QOS_CPU_DMA_LATENCY, PM_QOS_VALUE_VB);
+	cpu_latency_qos_add_request(&pm_qos_req_vb, PM_QOS_VALUE_VB);
 	mutex_lock(&aw8697->rtp_lock);
 	aw8697->rtp_cnt = 0;
 	while ((!aw8697_haptic_rtp_get_fifo_afi(aw8697)) &&
@@ -1361,7 +1361,7 @@ static int aw8697_haptic_rtp_init(struct aw8697 *aw8697)
 	}
 	pr_info("%s: exit\n", __func__);
 	mutex_unlock(&aw8697->rtp_lock);
-	pm_qos_remove_request(&pm_qos_req_vb);
+	cpu_latency_qos_remove_request(&pm_qos_req_vb);
 	return 0;
 }
 
@@ -1577,7 +1577,7 @@ static int aw8697_rtp_osc_calibration(struct aw8697 *aw8697)
 	disable_irq(gpio_to_irq(aw8697->irq_gpio));
 	/* haptic start */
 	aw8697_haptic_start(aw8697);
-	pm_qos_add_request(&pm_qos_req_vb, PM_QOS_CPU_DMA_LATENCY, PM_QOS_VALUE_VB);
+	cpu_latency_qos_add_request(&pm_qos_req_vb, PM_QOS_VALUE_VB);
 	while (1) {
 		if (!aw8697_haptic_rtp_get_fifo_afi(aw8697)) {
 			mutex_lock(&aw8697->rtp_lock);
@@ -1610,7 +1610,7 @@ static int aw8697_rtp_osc_calibration(struct aw8697 *aw8697)
 			break;
 		}
 	}
-	pm_qos_remove_request(&pm_qos_req_vb);
+	cpu_latency_qos_remove_request(&pm_qos_req_vb);
 	enable_irq(gpio_to_irq(aw8697->irq_gpio));
 
 	aw8697->osc_cali_flag = 0;

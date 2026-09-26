@@ -781,7 +781,7 @@ static void xmusb350_charger_type_det_work(struct work_struct *work)
 	int ret = 0;
 	int xmusb_type = QC35_UNKNOW, xmusb_err_stat = QC35_ERROR_NO, typec_mode = POWER_SUPPLY_TYPEC_NONE;
 	union power_supply_propval pval = {0,};
-	struct timespec time;
+	struct timespec64 time;
 	int recheck_time = 0;
 	bool ignore_tcpc_state = false;
 
@@ -796,7 +796,7 @@ static void xmusb350_charger_type_det_work(struct work_struct *work)
 	ret = power_supply_get_property(chip->usb_psy, POWER_SUPPLY_PROP_TYPEC_MODE, &pval);
 	typec_mode = pval.intval;
 	if (chip->tcpc_attach == false && typec_mode != POWER_SUPPLY_TYPEC_SINK_AUDIO_ADAPTER) {
-		get_monotonic_boottime(&time);
+		ktime_get_boottime_ts64(&time);
 		if (time.tv_sec > TCPC_ATTACH_FIRST_UPDATE_TIME_S) {
 			xm35_err("usb already plugout\n");
 			goto fail;
@@ -846,7 +846,7 @@ static void xmusb350_charger_type_det_work(struct work_struct *work)
 
 	// lock hvdcp detection when bootup for waiting PD status
 	if (xmusb_type == QC35_DCP || xmusb_type == QC35_HVDCP) {
-		get_monotonic_boottime(&time);
+		ktime_get_boottime_ts64(&time);
 		if (time.tv_sec < QC_WAIT_PD_CONN_TIME_S) {
 			xm35_err("boot_time %ld, wait pd update status\n", time.tv_sec);
 			if (chip->hvdcp_en)
@@ -1540,8 +1540,8 @@ static int load_fw(struct xmusb350_charger *chip, const char *fn, bool force)
 
 	file_data = kmalloc(FIRMWARE_FILE_LENGTH, GFP_KERNEL);
 	file_date_w = kmalloc(FIRMWARE_FILE_LENGTH, GFP_KERNEL);
-	if (rc) {
-		xm35_err("Unable to open firmware %s\n", fn);
+	if (!file_data || !file_date_w) {
+		xm35_err("Unable to allocate firmware buffer\n");
 		rc = ERROR_REQUESET_FIRMWARE;
 		goto release_firmware;
 	}

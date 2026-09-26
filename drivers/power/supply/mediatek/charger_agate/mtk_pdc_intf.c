@@ -87,7 +87,7 @@ void mtk_pdc_check_cable_impedance(struct charger_manager *pinfo)
 	int vchr1, vchr2, cable_imp;
 	unsigned int aicr_value;
 	bool mivr_state = false;
-	struct timespec ptime[2], diff;
+	struct timespec64 ptime[2], diff;
 
 	if (pinfo->pdc.check_impedance == false)
 		return;
@@ -98,7 +98,7 @@ void mtk_pdc_check_cable_impedance(struct charger_manager *pinfo)
 	pinfo->pdc.check_impedance = false;
 	pr_debug("%s: starts\n", __func__);
 
-	get_monotonic_boottime(&ptime[0]);
+	ktime_get_boottime_ts64(&ptime[0]);
 
 	/* Set ichg = 2500mA, set MIVR */
 	//charger_dev_set_charging_current(pinfo->chg5_dev, 2500000);
@@ -108,8 +108,8 @@ void mtk_pdc_check_cable_impedance(struct charger_manager *pinfo)
 	if (ret < 0)
 		chr_err("%s: failed, ret = %d\n", __func__, ret);
 
-	get_monotonic_boottime(&ptime[1]);
-	diff = timespec_sub(ptime[1], ptime[0]);
+	ktime_get_boottime_ts64(&ptime[1]);
+	diff = timespec64_sub(ptime[1], ptime[0]);
 
 	aicr_value = 800000;
 	//charger_dev_set_input_current(pinfo->chg5_dev, aicr_value);

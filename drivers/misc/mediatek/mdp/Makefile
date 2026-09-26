@@ -63,32 +63,21 @@ endif
 obj-$(CONFIG_MTK_MDP) += cmdq_helper_inf.o
 obj-$(CONFIG_MTK_MDP_MT6873) += mdp_drv_mt6873.o
 obj-$(CONFIG_MTK_MDP_MT6853) += mdp_drv_mt6853.o
-ifneq ($(wildcard $(srctree)/$(src)/mdp_mt6893.c),)
-obj-$(CONFIG_MTK_MDP) += mdp_drv_mt6893.o
+# AGATE: every mdp_mt*.c implements the same platform hooks, so exactly
+# one of them may be linked.  Pick the one matching this SoC.
+ifeq ($(CONFIG_MACH_MT6893),y)
+mdp-soc-obj := mdp_drv_mt6893.o
+else
+mdp-soc-obj := mdp_drv_mt$(subst $",,$(CONFIG_MTK_PLATFORM)).o
 endif
-ifneq ($(wildcard $(srctree)/$(src)/mdp_mt6983.c),)
-obj-$(CONFIG_MTK_MDP) += mdp_drv_mt6983.o
-endif
-
-ifneq ($(wildcard $(srctree)/$(src)/mdp_mt6879.c),)
-obj-$(CONFIG_MTK_MDP) += mdp_drv_mt6879.o
-endif
-
-ifneq ($(wildcard $(srctree)/$(src)/mdp_mt6895.c),)
-obj-$(CONFIG_MTK_MDP) += mdp_drv_mt6895.o
+ifneq ($(wildcard $(srctree)/$(src)/$(mdp-soc-obj)),)
+obj-$(CONFIG_MTK_MDP) += $(mdp-soc-obj)
 endif
 
-ifneq ($(wildcard $(srctree)/$(src)/mdp_mt6855.c),)
-obj-$(CONFIG_MTK_MDP) += mdp_drv_mt6855.o
-endif
 
-ifneq ($(wildcard $(srctree)/$(src)/mdp_mt6833.c),)
-obj-$(CONFIG_MTK_MDP) += mdp_drv_mt6833.o
-endif
 
-ifneq ($(wildcard $(srctree)/$(src)/mdp_mt6789.c),)
-obj-$(CONFIG_MTK_MDP) += mdp_drv_mt6789.o
-endif
+
+
 
 mdp_drv_mt6873-objs := mdp_drv.o mdp_mt6873.o
 mdp_drv_mt6853-objs := mdp_drv.o mdp_mt6853.o

@@ -67,7 +67,7 @@
 //#include <cmdq_record.h>
 #include <linux/soc/mediatek/mtk-cmdq-ext.h>
 //#include <linux/soc/mediatek/mtk-cmdq.h>
-#include <soc/mediatek/smi.h>
+#include "smi_public.h"
 //!
 //#include <linux/io-pgtable.h>
 //#include <linux/iommu.h>
@@ -94,7 +94,7 @@
 #endif /* CONFIG_MTK_IOMMU_V2 */
 #endif
 #ifdef smi_en
-#include <smi_public.h>
+#include "smi_public.h"
 #endif
 #include "engine_request.h"
 #ifdef KERNEL_DMA_BUFFER

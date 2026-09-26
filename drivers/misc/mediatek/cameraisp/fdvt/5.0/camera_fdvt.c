@@ -57,7 +57,7 @@
 
 #include <cmdq_core.h>
 #include <cmdq_record.h>
-#include <smi_public.h>
+#include "smi_public.h"
 #define CHECK_SERVICE_IF_0	0
 #define CHECK_SERVICE_IF_1	1
 /* Measure the kernel performance

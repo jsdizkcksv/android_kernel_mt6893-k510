@@ -529,7 +529,7 @@ struct charger_manager {
 
 	/* alarm timer */
 	struct alarm charger_timer;
-	struct timespec endtime;
+	struct timespec64 endtime;
 	bool is_suspend;
 
 	struct wakeup_source *charger_wakelock;
@@ -740,13 +740,12 @@ static int mtk_chg_##name##_open(struct inode *node, struct file *file)	\
 {									\
 	return single_open(file, mtk_chg_##name##_show, PDE_DATA(node));\
 }									\
-static const struct file_operations mtk_chg_##name##_fops = {		\
-	.owner = THIS_MODULE,						\
-	.open = mtk_chg_##name##_open,					\
-	.read = seq_read,						\
-	.llseek = seq_lseek,						\
-	.release = single_release,					\
-	.write = mtk_chg_##name##_write,				\
+static const struct proc_ops mtk_chg_##name##_fops = {		\
+	.proc_open = mtk_chg_##name##_open,				\
+	.proc_read = seq_read,						\
+	.proc_lseek = seq_lseek,					\
+	.proc_release = single_release,				\
+	.proc_write = mtk_chg_##name##_write,			\
 }
 
 #endif /* __MTK_CHARGER_INTF_H__ */

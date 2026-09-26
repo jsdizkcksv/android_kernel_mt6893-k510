@@ -171,9 +171,11 @@ int ged_bridge_gpu_hint_to_cpu(
 		struct GED_BRIDGE_OUT_GPU_HINT_TO_CPU *out)
 {
 	int ret = 0;
-#ifdef CONFIG_MTK_FPSGO_V3
-	ret = fpsgo_notify_gpu_block(in->tid, in->i32BridgeFD, in->hint);
-#endif
+	/*
+	 * AGATE 5.10 port: the 5.10 fpsgo_v3 tree does not export
+	 * fpsgo_notify_gpu_block(), and the 4.19 AGATE device never enabled
+	 * FPSGO either.  Skip the hint instead of referencing a missing symbol.
+	 */
 	out->eError = GED_OK;
 	out->boost_flag = ret;
 	out->boost_value = ged_dvfs_boost_value();

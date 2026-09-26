@@ -2496,7 +2496,7 @@ static int cpufreq_set_policy(struct cpufreq_policy *policy,
 
 	/* the adjusted frequency should not exceed thermal limit */
 	blocking_notifier_call_chain(&cpufreq_policy_notifier_list,
-			CPUFREQ_THERMAL, new_policy);
+			CPUFREQ_THERMAL, &new_data);
 
 	/*
 	 * Verify that the CPU speed can be set within these limits and make sure

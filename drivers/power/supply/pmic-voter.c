@@ -809,7 +809,7 @@ struct votable *create_votable(const char *name,
 		return ERR_PTR(-EEXIST);
 	}
 
-	votable->force_val_ent = debugfs_create_u32("force_val",
+	(void)debugfs_create_u32("force_val",
 					S_IFREG | 0644,
 					votable->root,
 					&(votable->force_val));

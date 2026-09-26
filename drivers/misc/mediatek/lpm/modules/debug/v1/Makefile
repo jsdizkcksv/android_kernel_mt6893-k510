@@ -37,3 +37,4 @@ ${MTK_LPM_DBG_COMMON_NAME}-objs += lpm_pwr_gs.o
 ${MTK_LPM_DBG_COMMON_NAME}-objs += gs/${MTK_LPM_GS_DUMP_VERSION}/lpm_pwr_gs_common.o
 ${MTK_LPM_DBG_COMMON_NAME}-objs += gs/${MTK_LPM_GS_DUMP_VERSION}/lpm_pwr_gs_dump_clk.o
 ${MTK_LPM_DBG_COMMON_NAME}-objs += gs/${MTK_LPM_GS_DUMP_VERSION}/lpm_pwr_gs_dump_pmic.o
+subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/include

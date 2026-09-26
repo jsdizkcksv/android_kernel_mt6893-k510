@@ -5,6 +5,7 @@
 #include <gs/lpm_pwr_gs.h>
 #include <gs/v1/lpm_power_gs.h>
 #include <linux/io.h>
+#include <mt-plat/upmu_common.h>
 #define LPM_GS_CMP_SEARCH		(1u << 0)
 struct lpm_gs_dcm_info_inst {
 	struct lpm_gs_clk_info *info;

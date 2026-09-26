@@ -145,7 +145,14 @@ EXPORT_SYMBOL_GPL(qos_ipi_init);
 
 void qos_ipi_recv_init(struct mtk_qos *qos)
 {
-#if IS_ENABLED(CONFIG_MTK_TINYSYS_SSPM_V2)
+/*
+ * MT6893 uses the SCMI path: the SSPM event notifier registered in
+ * qos_ipi_init() delivers replies, and mtk_qos_ipi_v2.c (which owns
+ * qos_ipi_recv_thread) is not built in this branch.  Keep the IPI
+ * receive thread only for the non-MT6893 build.
+ */
+#if IS_ENABLED(CONFIG_MTK_TINYSYS_SSPM_V2) && \
+	!IS_ENABLED(CONFIG_MTK_QOS_MT6893)
 	if (qos_sspm_ready != 1) {
 		pr_info("QOS SSPM not ready, recv thread not start!\n");
 		return;

@@ -10,7 +10,7 @@
 #include <linux/slab.h>
 #include <linux/types.h>
 #include <linux/list.h>
-//#include "smi_public.h"
+//#include <soc/mediatek/smi.h>
 #include "mtk_vcodec_dec_pm.h"
 #include "mtk_vcodec_dec_pm_plat.h"
 #include "mtk_vcodec_util.h"

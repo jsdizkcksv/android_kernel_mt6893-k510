@@ -34,6 +34,9 @@ enum CCCI_IPC_MSG_ID_RANGE {
 	IPC_UFPM_MSG_ID_RANGE = 0x18,
 };
 
+#ifndef __MTK_IPC_ILM_DEFINED__
+#define __MTK_IPC_ILM_DEFINED__
+
 struct local_para {
 	u8 ref_count;
 	u8 _stub; /* MD complier will align ref_count to 16bit */
@@ -58,6 +61,8 @@ struct ipc_ilm {
 	struct local_para *local_para_ptr;
 	struct peer_buff *peer_buff_ptr;
 }; /* for conn_md */
+
+#endif /* __MTK_IPC_ILM_DEFINED__ */
 
 struct ccci_emi_info {
 	u8 ap_domain_id;

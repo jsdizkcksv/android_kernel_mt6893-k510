@@ -176,7 +176,7 @@ int gauge_reset_hw(void)
 	gauge_coulomb_before_reset();
 	gauge_dev_reset_hw(gm.gdev);
 	gauge_coulomb_after_reset();
-	get_monotonic_boottime(&gm.sw_iavg_time);
+	ktime_get_boottime_ts64(&gm.sw_iavg_time);
 	gm.sw_iavg_car = gauge_get_coulomb();
 
 	gm.bat_cycle_car = 0;
@@ -371,7 +371,7 @@ void zcv_filter_init(struct zcv_filter *zf)
 	zf->zcvcurrent = 20;
 }
 
-int zcv_add(struct zcv_filter *zf, int car, struct timespec *t)
+int zcv_add(struct zcv_filter *zf, int car, struct timespec64 *t)
 {
 	int nidx;
 	int ret = 0;
@@ -445,7 +445,7 @@ int zcv_filter_add(struct zcv_filter *zf)
 {
 	int ret = 0;
 	struct zcv_log *old;
-	struct timespec dtime, now;
+	struct timespec64 dtime, now;
 	int dcar = 0;
 	int avgc = 0;
 	int time_thread = 0;
@@ -453,7 +453,7 @@ int zcv_filter_add(struct zcv_filter *zf)
 	int car = 0;
 
 	car = gauge_get_coulomb();
-	get_monotonic_boottime(&now);
+	ktime_get_boottime_ts64(&now);
 
 	dtime.tv_sec = 0;
 	dtime.tv_nsec = 0;
@@ -463,7 +463,7 @@ int zcv_filter_add(struct zcv_filter *zf)
 
 	if (zf->lidx != -1) {
 		old = &zf->log[zf->lidx];
-		dtime = timespec_sub(now, old->time);
+		dtime = timespec64_sub(now, old->time);
 		dcar = abs(car - old->car);
 		if (dtime.tv_sec != 0)
 			avgc = dcar * 360 / dtime.tv_sec;
@@ -494,10 +494,10 @@ int zcv_filter_add(struct zcv_filter *zf)
 void zcv_filter_dump(struct zcv_filter *zf)
 {
 	int i;
-	struct timespec dtime;
-	struct timespec now_time;
+	struct timespec64 dtime;
+	struct timespec64 now_time;
 
-	get_monotonic_boottime(&now_time);
+	ktime_get_boottime_ts64(&now_time);
 	dtime.tv_sec = 0;
 	dtime.tv_nsec = 0;
 	bm_debug("zcvf dump:fidx:%d lidx:%d size:%d now:%ld zcvt:%d avgc:%d\n",
@@ -508,7 +508,7 @@ void zcv_filter_dump(struct zcv_filter *zf)
 			(fg_cust_data.zcv_suspend_time + 1) * 4 * 60,
 			fg_cust_data.sleep_current_avg / 10);
 	for (i = 0; i < ZCV_LOG_LEN; i++) {
-		dtime = timespec_sub(now_time, zf->log[i].time);
+		dtime = timespec64_sub(now_time, zf->log[i].time);
 		bm_debug("zcvf idx:%d car:%d avgc:%d dcar:%d time:%ld dtime_p:%d dtime_n:%ld\n",
 			i,
 			zf->log[i].car,
@@ -522,7 +522,7 @@ void zcv_filter_dump(struct zcv_filter *zf)
 
 bool zcv_check(struct zcv_filter *zf)
 {
-	struct timespec now_time, dtime;
+	struct timespec64 now_time, dtime;
 	int idx = 0;
 	int time_thread = 0;
 	int avgc_thread = 0;
@@ -534,7 +534,7 @@ bool zcv_check(struct zcv_filter *zf)
 	bool oc = false;
 	int i_intime = -1;
 
-	get_monotonic_boottime(&now_time);
+	ktime_get_boottime_ts64(&now_time);
 	time_thread = (fg_cust_data.zcv_suspend_time + 1) * 4 * 60;
 	avgc_thread = fg_cust_data.sleep_current_avg / 10 * 3 / 2;
 
@@ -543,7 +543,7 @@ bool zcv_check(struct zcv_filter *zf)
 		idx = zf->fidx;
 		idx = (idx + i) % ZCV_LOG_LEN;
 		log = &zf->log[idx];
-		dtime = timespec_sub(now_time, log->time);
+		dtime = timespec64_sub(now_time, log->time);
 
 		bm_debug("zcvf i:%d i_intime:%d idx:%d dtime_now:%ld avgc_prev:%d car:%d %d ot:%d\n",
 			i, i_intime, idx, dtime.tv_sec, log->avgcurrent,
@@ -1810,11 +1810,11 @@ static int _get_ptim_rac_val(void)
 
 int fg_get_system_sec(void)
 {
-	struct timespec time;
+	struct timespec64 time;
 
 	time.tv_sec = 0;
 	time.tv_nsec = 0;
-	get_monotonic_boottime(&time);
+	ktime_get_boottime_ts64(&time);
 	return (int)time.tv_sec;
 }
 
@@ -1845,10 +1845,10 @@ void notify_fg_shutdown(void)
 
 void notify_fg_chr_full(void)
 {
-	struct timespec now_time, difftime;
+	struct timespec64 now_time, difftime;
 
-	get_monotonic_boottime(&now_time);
-	difftime = timespec_sub(now_time, gm.chr_full_handler_time);
+	ktime_get_boottime_ts64(&now_time);
+	difftime = timespec64_sub(now_time, gm.chr_full_handler_time);
 	if (now_time.tv_sec <= 10 || difftime.tv_sec >= 10) {
 		gm.chr_full_handler_time = now_time;
 		bm_err("[fg_chr_full_int_handler]\n");
@@ -1890,7 +1890,7 @@ void sw_check_bat_plugout(void)
 void fg_nafg_monitor(void)
 {
 	int nafg_cnt = 0;
-	struct timespec now_time, dtime;
+	struct timespec64 now_time, dtime;
 
 	if (gm.disableGM30 || gm.cmd_disable_nafg || gm.ntc_disable_nafg)
 		return;
@@ -1904,10 +1904,10 @@ void fg_nafg_monitor(void)
 
 	if (gm.last_nafg_cnt != nafg_cnt) {
 		gm.last_nafg_cnt = nafg_cnt;
-		get_monotonic_boottime(&gm.last_nafg_update_time);
+		ktime_get_boottime_ts64(&gm.last_nafg_update_time);
 	} else {
-		get_monotonic_boottime(&now_time);
-		dtime = timespec_sub(now_time, gm.last_nafg_update_time);
+		ktime_get_boottime_ts64(&now_time);
+		dtime = timespec64_sub(now_time, gm.last_nafg_update_time);
 		if (dtime.tv_sec >= 600) {
 			gm.is_nafg_broken = true;
 			wakeup_fg_algo_cmd(
@@ -1933,7 +1933,7 @@ static void sw_iavg_init(void)
 	int is_bat_charging = 0;
 	int bat_current = 0;
 
-	get_monotonic_boottime(&gm.sw_iavg_time);
+	ktime_get_boottime_ts64(&gm.sw_iavg_time);
 	gm.sw_iavg_car = gauge_get_coulomb();
 
 	/* BAT_DISCHARGING = 0 */
@@ -1954,12 +1954,12 @@ static void sw_iavg_init(void)
 
 void fg_update_sw_iavg(void)
 {
-	struct timespec now_time, diff;
+	struct timespec64 now_time, diff;
 	int fg_coulomb;
 
-	get_monotonic_boottime(&now_time);
+	ktime_get_boottime_ts64(&now_time);
 
-	diff = timespec_sub(now_time, gm.sw_iavg_time);
+	diff = timespec64_sub(now_time, gm.sw_iavg_time);
 	bm_debug("[%s]diff time:%ld iavg:%d\n",
 		__func__,
 		diff.tv_sec,
@@ -2460,7 +2460,7 @@ void fg_nafg_int_handler(void)
 	/* 3. Notify fg daemon */
 	wakeup_fg_algo(FG_INTR_NAG_C_DLTV);
 
-	get_monotonic_boottime(&gm.last_nafg_update_time);
+	ktime_get_boottime_ts64(&gm.last_nafg_update_time);
 }
 
 /* ============================================================ */
@@ -3677,17 +3677,17 @@ void bmd_ctrl_cmd_from_user(void *nl_data, struct fgd_nl_msg_t *ret_msg)
 	case FG_DAEMON_CMD_SET_FG_TIME:
 	{
 		int secs;
-		struct timespec time, time_now, end_time;
+		struct timespec64 time, time_now, end_time;
 		ktime_t ktime;
 
 		memcpy(&secs, &msg->fgd_data[0], sizeof(secs));
 
 		if (secs != 0 && secs > 0) {
-			get_monotonic_boottime(&time_now);
+			ktime_get_boottime_ts64(&time_now);
 			time.tv_sec = secs;
 			time.tv_nsec = 0;
 
-			end_time = timespec_add(time_now, time);
+			end_time = timespec64_add(time_now, time);
 			ktime = ktime_set(end_time.tv_sec, end_time.tv_nsec);
 
 			if (msg->fgd_subcmd_para1 == 0)
@@ -4157,7 +4157,7 @@ void bmd_ctrl_cmd_from_user(void *nl_data, struct fgd_nl_msg_t *ret_msg)
 	{
 		int daemon_ui_soc;
 		int old_uisoc;
-		struct timespec now_time, diff;
+		struct timespec64 now_time, diff;
 
 		memcpy(&daemon_ui_soc, &msg->fgd_data[0],
 			sizeof(daemon_ui_soc));
@@ -4178,8 +4178,8 @@ void bmd_ctrl_cmd_from_user(void *nl_data, struct fgd_nl_msg_t *ret_msg)
 
 		/* when UISOC changes, check the diff time for smooth */
 		if (old_uisoc != gm.ui_soc) {
-			get_monotonic_boottime(&now_time);
-			diff = timespec_sub(now_time, gm.uisoc_oldtime);
+			ktime_get_boottime_ts64(&now_time);
+			diff = timespec64_sub(now_time, gm.uisoc_oldtime);
 
 			bm_debug("[fg_res] FG_DAEMON_CMD_SET_KERNEL_UISOC = %d %d GM3:%d old:%d diff=%ld\n",
 				daemon_ui_soc, gm.ui_soc,
@@ -4726,14 +4726,14 @@ void gm3_log_dump_nafg(int type)
 
 void gm3_log_dump(bool force)
 {
-	static struct timespec last_update_time;
-	struct timespec now_time, diff;
+	static struct timespec64 last_update_time;
+	struct timespec64 now_time, diff;
 	int system_time;
 	int car;
 	unsigned long long logtime;
 
-	get_monotonic_boottime(&now_time);
-	diff = timespec_sub(now_time, last_update_time);
+	ktime_get_boottime_ts64(&now_time);
+	diff = timespec64_sub(now_time, last_update_time);
 	if (diff.tv_sec < 5)
 		return;
 

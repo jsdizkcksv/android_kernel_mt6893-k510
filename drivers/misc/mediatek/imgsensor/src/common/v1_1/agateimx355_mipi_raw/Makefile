@@ -11,4 +11,4 @@
 # GNU General Public License for more details.
 #
 
-obj-y += agateimx355mipiraw_Sensor.o
+obj-y += $(subdrv-rpath)/agateimx355mipiraw_Sensor.o

@@ -16,6 +16,8 @@
 #include "mdw_rv_tag.h"
 #include "mdw_rv_events.h"
 
+#if IS_ENABLED(CONFIG_MTK_APUSYS_DEBUG)
+
 static struct apu_tags *mdw_rv_tags;
 
 enum mdw_tag_type {
@@ -129,3 +131,5 @@ void mdw_rv_tag_deinit(void)
 	apu_tags_free(mdw_rv_tags);
 }
 
+
+#endif /* CONFIG_MTK_APUSYS_DEBUG */

@@ -22,7 +22,7 @@
 #include "mtk-mml-mmp.h"
 
 #ifdef CONFIG_MTK_SMI_EXT
-#include "smi_public.h"
+#include <soc/mediatek/smi.h>
 #endif
 
 #define RDMA_EN				0x000

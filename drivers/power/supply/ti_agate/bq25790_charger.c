@@ -384,7 +384,7 @@ static int bq25790_set_arti_vbus_disable(struct bq25790 *bq, bool disable)
 static int bq25790_tune_vbus_volt(bool up, int pulse)
 {
 	int ret, val;
-	struct charger_device *chg2_dev;
+	static struct charger_device *chg2_dev;
 
 	if (!chg2_dev)
 		chg2_dev = get_charger_by_name("secondary_chg");
@@ -557,14 +557,14 @@ static int bq25790_get_input_current_limit(struct charger_device *chg_dev, u32 *
 static int bq25790_set_charge_current(struct charger_device *chg_dev, u32 curr)
 {
 	struct bq25790 *bq = charger_get_data(chg_dev);
-	int ret;
 	u16 reg_val;
+	int ret;
 
 	curr /= 1000;
 
 	if (curr < 0 || curr > 6000) {
 		bq_dbg(PR_OEM, "bq25790_api set_charge_current error\n");
-		return ret;
+		return -EINVAL;
 	}
 
 	bq_dbg(PR_OEM, "bq25790_api bq25790_set_charge_current:%d\n", curr);
@@ -805,14 +805,14 @@ static int bq25790_set_en_extilim(struct bq25790 *bq, bool enable)
 static int bq25790_set_input_curr_limit(struct charger_device *chg_dev, u32 curr)
 {
 	struct bq25790 *bq = charger_get_data(chg_dev);
-	int ret;
 	u16 reg_val;
+	int ret;
 
 	curr /= 1000;
 
 	if (curr < 0 || curr > 4000) {
 		bq_dbg(PR_OEM, "bq25790_api set_input_curr_limit error\n");
-		return ret;
+		return -EINVAL;
 	}
 
 	bq_dbg(PR_OEM, "bq25790_api bq25790_set_input_curr_limit:%d\n", curr);
@@ -2018,7 +2018,7 @@ static int bq25790_charger_is_writeable(struct power_supply *psy,
 
 static int bq25790_update_charging_profile(struct bq25790 *bq)
 {
-	int iindpm, fcc;
+	int iindpm = 0, fcc = 0;
 
 	if (!bq->usb_present || !bq->usb_psy)
 		return 0;
@@ -2118,7 +2118,6 @@ static int bq25790_update_charging_profile(struct bq25790 *bq)
 
 static int bq25790_psy_register(struct bq25790 *bq)
 {
-	int ret;
 	struct power_supply_config bbc_psy_cfg = {};
 
 	bq->bbc_psy_d.name = "bbc";
@@ -2138,7 +2137,7 @@ static int bq25790_psy_register(struct bq25790 *bq)
 	if (IS_ERR(bq->bbc_psy)) {
 		bq_dbg(PR_OEM, "couldn't register battery psy, ret = %ld\n",
 				PTR_ERR(bq->bbc_psy));
-		return ret;
+		return (int)PTR_ERR(bq->bbc_psy);
 	}
 
 	return 0;

@@ -38,7 +38,7 @@ static ssize_t tcpc_store_property(struct device *dev,
 	.store = tcpc_store_property,					\
 }
 
-static struct class *tcpc_class;
+struct class *tcpc_class;
 EXPORT_SYMBOL_GPL(tcpc_class);
 
 static struct device_type tcpc_dev_type;

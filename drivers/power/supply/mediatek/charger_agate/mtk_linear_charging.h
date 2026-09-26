@@ -24,8 +24,8 @@ struct linear_charging_alg_data {
 	unsigned int cc_charging_time;
 	unsigned int topoff_charging_time;
 	unsigned int full_charging_time;
-	struct timespec topoff_begin_time;
-	struct timespec charging_begin_time;
+	struct timespec64 topoff_begin_time;
+	struct timespec64 charging_begin_time;
 
 	int recharge_offset; /* uv */
 	int topoff_voltage; /* uv */

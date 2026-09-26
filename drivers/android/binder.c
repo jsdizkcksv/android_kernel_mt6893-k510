@@ -68,8 +68,6 @@
 #include <linux/sizes.h>
 #include <linux/android_vendor.h>
 
-
-#include <uapi/linux/android/binder.h>
 #include <uapi/linux/sched/types.h>
 #include <uapi/linux/android/binder.h>
 
@@ -225,9 +223,6 @@ static struct binder_transaction_log_entry *binder_transaction_log_add(
 enum binder_deferred_state {
 	BINDER_DEFERRED_FLUSH        = 0x01,
 	BINDER_DEFERRED_RELEASE      = 0x02,
-	BINDER_DEFERRED_PUT_FILES    = 0x01,
-	BINDER_DEFERRED_FLUSH        = 0x02,
-	BINDER_DEFERRED_RELEASE      = 0x04,
 };
 
 enum {
@@ -238,52 +233,6 @@ enum {
 	BINDER_LOOPER_STATE_WAITING     = 0x10,
 	BINDER_LOOPER_STATE_POLL        = 0x20,
 };
-
-
-
-#ifdef CONFIG_ANDROID_BINDER_USER_TRACKING
-/*
- * binder_print_delay - Output info of a delay transaction
- * @t:          pointer to the over-time transaction
- */
-static void binder_print_delay(struct binder_transaction *t)
-{
-	struct rtc_time tm;
-	struct timespec *startime;
-	struct timespec cur, sub_t;
-
-	ktime_get_ts(&cur);
-	startime = &t->timestamp;
-	sub_t = timespec_sub(cur, *startime);
-	/* if transaction time is over than 2 sec,
-	 * show timeout warning log.
-	 */
-	if (sub_t.tv_sec < 2)
-		return;
-	rtc_time_to_tm(t->tv.tv_sec, &tm);
-	spin_lock(&t->lock);
-	pr_info_ratelimited("%d: from %d:%d to %d:%d",
-			t->debug_id,
-			t->from ? t->from->proc->pid : 0,
-			t->from ? t->from->pid : 0,
-			t->to_proc ? t->to_proc->pid : 0,
-			t->to_thread ? t->to_thread->pid : 0);
-	spin_unlock(&t->lock);
-	pr_info_ratelimited(" total %u.%03ld s code %u start %lu.%03ld android %d-%02d-%02d %02d:%02d:%02d.%03lu\n",
-			(unsigned int)sub_t.tv_sec,
-			(sub_t.tv_nsec / NSEC_PER_MSEC),
-			t->code,
-			(unsigned long)startime->tv_sec,
-			(startime->tv_nsec / NSEC_PER_MSEC),
-			(tm.tm_year + 1900), (tm.tm_mon + 1), tm.tm_mday,
-			tm.tm_hour, tm.tm_min, tm.tm_sec,
-			(unsigned long)(t->tv.tv_usec / USEC_PER_MSEC));
-}
-#else
-static void binder_print_delay(struct binder_transaction *t)
-{
-}
-#endif
 
 /**
  * binder_proc_lock() - Acquire outer lock for given binder_proc
@@ -813,25 +762,11 @@ static void binder_restore_priority(struct task_struct *task,
 	binder_do_set_priority(task, desired, /* verify = */ false);
 }
 
-static bool is_home_systemui_task(struct binder_transaction *t) {
-	if (t && t->from && t->from->task && (!(t->flags & TF_ONE_WAY)) &&
-		is_rt_policy(t->from->task->policy) && (t->from->task->pid == t->from->task->tgid) &&
-		((strncmp(t->from->task->comm, "com.miui.home", strlen("com.miui.home")) == 0) ||
-		(strncmp(t->from->task->comm, "ndroid.systemui", strlen("ndroid.systemui")) == 0))) {
-		return true;
-	}
-	return false;
-}
-
 static void binder_transaction_priority(struct task_struct *task,
 					struct binder_transaction *t,
 					struct binder_priority node_prio,
 					bool inherit_rt)
 {
-	struct binder_priority desired={0};
-	unsigned int policy=0;
-	struct sched_param params;
-
 	struct binder_priority desired_prio = t->priority;
 	bool skip = false;
 
@@ -866,16 +801,6 @@ static void binder_transaction_priority(struct task_struct *task,
 
 	binder_set_priority(task, desired_prio);
 	trace_android_vh_binder_set_priority(t, task);
-
-	if (is_home_systemui_task(t)){
-		desired.sched_policy = SCHED_FIFO;
-		desired.prio = 98;
-		policy = desired.sched_policy;
-	}
-	if (is_rt_policy(policy) && task->policy != policy) {
-		params.sched_priority = to_userspace_prio(policy, desired.prio);
-		sched_setscheduler_nocheck(task, policy | SCHED_RESET_ON_FORK, &params);
-	}
 }
 
 static struct binder_node *binder_get_node_ilocked(struct binder_proc *proc,
@@ -3179,7 +3104,6 @@ static void binder_transaction(struct binder_proc *proc,
 		target_proc->tmp_ref++;
 		binder_inner_proc_unlock(target_thread->proc);
 		trace_android_vh_binder_reply(target_proc, proc, thread, tr);
-		trace_binder_reply_hook(target_proc, proc, thread, tr);
 	} else {
 		if (tr->target.handle) {
 			struct binder_ref *ref;
@@ -3235,9 +3159,6 @@ static void binder_transaction(struct binder_proc *proc,
 		trace_android_vh_binder_trans(target_proc, proc, thread, tr);
 		if (security_binder_transaction(binder_get_cred(proc),
 					binder_get_cred(target_proc)) < 0) {
-		trace_binder_trans_hook(target_proc, proc, thread, tr);
-		if (security_binder_transaction(proc->cred,
-						target_proc->cred) < 0) {
 			return_error = BR_FAILED_REPLY;
 			return_error_param = -EPERM;
 			return_error_line = __LINE__;
@@ -4458,7 +4379,6 @@ static int binder_wait_for_work(struct binder_thread *thread,
 			list_add(&thread->waiting_thread_node,
 				 &proc->waiting_threads);
 		trace_android_vh_binder_wait_for_work(do_proc_work, thread, proc);
-		trace_binder_wait_for_work_hook(do_proc_work, thread, proc);
 		binder_inner_proc_unlock(proc);
 		schedule();
 		binder_inner_proc_lock(proc);
@@ -5835,9 +5755,6 @@ static int binder_open(struct inode *nodp, struct file *filp)
 	mutex_unlock(&binder_procs_lock);
 	trace_android_vh_binder_preset(&binder_procs, &binder_procs_lock);
 	if (binder_debugfs_dir_entry_proc && !existing_pid) {
-	trace_binder_preset_hook(&binder_procs, &binder_procs_lock);
-
-	if (binder_debugfs_dir_entry_proc) {
 		char strbuf[11];
 
 		snprintf(strbuf, sizeof(strbuf), "%u", proc->pid);
@@ -6802,7 +6719,6 @@ err_alloc_device_names_failed:
 }
 
 device_initcall(binder_init);
-
 
 #define CREATE_TRACE_POINTS
 #include "binder_trace.h"

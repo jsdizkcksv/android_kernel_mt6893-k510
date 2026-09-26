@@ -2056,7 +2056,9 @@ static void ufs_mtk_dbg_register_dump(struct ufs_hba *hba)
 	/* Direct debugging information to REG_MTK_PROBE */
 	ufs_mtk_dbg_sel(hba);
 	ufshcd_dump_regs(hba, REG_UFS_PROBE, 0x4, "Debug Probe ");
+#if IS_ENABLED(CONFIG_SCSI_UFS_MEDIATEK_DBG)
 	ufs_mtk_dbg_dump(100);
+#endif
 }
 
 static int ufs_mtk_setup_regulators(struct ufs_hba *hba, bool on)
@@ -2233,7 +2235,9 @@ static void ufs_mtk_event_notify(struct ufs_hba *hba,
 
 #if IS_ENABLED(CONFIG_MTK_AEE_FEATURE)
 	if (evt == UFS_EVT_ABORT && !ufs_abort_aee_count) {
+#if IS_ENABLED(CONFIG_SCSI_UFS_MEDIATEK_DBG)
 		cmd_hist_disable();
+#endif
 		ufs_abort_aee_count++;
 		aee_kernel_warning_api(__FILE__,
 			__LINE__, DB_OPT_FS_IO_LOG,

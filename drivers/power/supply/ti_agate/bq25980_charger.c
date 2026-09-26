@@ -568,7 +568,6 @@ static int bq25980_set_input_volt_lim(struct bq25980_device *bq, int busovp)
 	unsigned int busovp_reg_code;
 	unsigned int busovp_step;
 	unsigned int busovp_offset;
-	int ret;
 
 	if (bq->state.bypass) {
 		busovp_step = bq->chip_info->busovp_byp_step;
@@ -596,7 +595,6 @@ static int bq25980_set_input_volt_lim_alarm(struct bq25980_device *bq, int busov
 	unsigned int busovp_reg_code;
 	unsigned int busovp_step;
 	unsigned int busovp_offset;
-	int ret;
 
 	if (bq->state.bypass) {
 		busovp_step = bq->chip_info->busovp_byp_step;
@@ -920,7 +918,7 @@ static int bq25980_get_state(struct bq25980_device *bq,
 	return 0;
 }
 
-static int bq25980_enable_charge(struct charger_device *chg_dev, bool enable)
+int bq25980_enable_charge(struct charger_device *chg_dev, bool enable)
 {
 	struct bq25980_device *bq = charger_get_data(chg_dev);
 	int ret;

@@ -28,7 +28,7 @@ struct switch_charging_alg_data {
 	unsigned int cc_charging_time;
 	unsigned int cv_charging_time;
 	unsigned int full_charging_time;
-	struct timespec charging_begin_time;
+	struct timespec64 charging_begin_time;
 
 	int vbus_mv;
 };

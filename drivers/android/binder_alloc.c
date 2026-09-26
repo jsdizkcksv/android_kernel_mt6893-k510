@@ -425,7 +425,6 @@ static struct binder_buffer *binder_alloc_new_buf_locked(
 	size = max(size, sizeof(void *));
 
 	trace_android_vh_binder_alloc_new_buf_locked(size, alloc, is_async);
-	trace_binder_alloc_new_buf_locked_hook(size, alloc, is_async);
 	if (is_async &&
 	    alloc->free_async_space < size + sizeof(struct binder_buffer)) {
 		binder_alloc_debug(BINDER_DEBUG_BUFFER_ALLOC,

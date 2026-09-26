@@ -1653,8 +1653,6 @@ EXPORT_SYMBOL_GPL(thermal_zone_get_zone_by_name);
 static int thermal_pm_notify(struct notifier_block *nb,
 			     unsigned long mode, void *_unused)
 {
-	struct thermal_zone_device *tz;
-	int irq_wakeable = 0;
 
 	switch (mode) {
 	case PM_HIBERNATION_PREPARE:
@@ -1775,7 +1773,7 @@ thermal_boost_store(struct device *dev,
 				      struct device_attribute *attr, const char *buf, size_t len)
 {
 	int ret;
-	ret = snprintf(boost_buf, PAGE_SIZE, buf);
+	ret = snprintf(boost_buf, sizeof(boost_buf), "%s", buf);
 	return len;
 }
 
@@ -1898,7 +1896,7 @@ static ssize_t
 thermal_board_sensor_temp_store(struct device *dev,
                 struct device_attribute *attr, const char *buf, size_t len)
 {
-       snprintf(board_sensor_temp, PAGE_SIZE, buf);
+       snprintf(board_sensor_temp, sizeof(board_sensor_temp), "%s", buf);
 
        return len;
 }
@@ -2125,10 +2123,6 @@ static int __init thermal_init(void)
 		ret = -EPROBE_DEFER;
 	}
 	
-	result = genetlink_init();
-	if (result)
-		goto unregister_class;
-
 	result = of_parse_thermal_zones();
 	if (result)
 		goto unregister_class;
@@ -2161,13 +2155,10 @@ error:
 	mutex_destroy(&poweroff_lock);
 	return result;
 }
-postcore_initcall(thermal_init);
 
 static void __exit thermal_exit(void)
 {
 	unregister_pm_notifier(&thermal_pm_nb);
-	of_thermal_destroy_zones();
-	genetlink_exit();
 	destroy_thermal_message_node();
 
 #ifdef CONFIG_FB

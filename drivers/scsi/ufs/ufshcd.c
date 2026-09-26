@@ -2462,9 +2462,6 @@ static void ufshcd_disable_intr(struct ufs_hba *hba, u32 intrs)
  */
 static void ufshcd_prepare_req_desc_hdr(struct ufshcd_lrb *lrbp,
 			u8 *upiu_flags, enum dma_data_direction cmd_dir)
-static void ufshcd_prepare_req_desc_hdr(struct ufs_hba *hba,
-            struct ufshcd_lrb *lrbp,
-			u32 *upiu_flags, enum dma_data_direction cmd_dir)
 {
 	struct utp_transfer_req_desc *req_desc = lrbp->utr_descriptor_ptr;
 	u32 data_direction;
@@ -2483,13 +2480,8 @@ static void ufshcd_prepare_req_desc_hdr(struct ufs_hba *hba,
 		*upiu_flags = UPIU_CMD_FLAGS_NONE;
 	}
 
-	if (hba->ufs_version == UFSHCI_VERSION_20)
-		dword_0 = data_direction | (UTP_CMD_TYPE_UFS
+	dword_0 = data_direction | (lrbp->command_type
 				<< UPIU_COMMAND_TYPE_OFFSET);
-	else
-		dword_0 = data_direction | (lrbp->command_type
-				<< UPIU_COMMAND_TYPE_OFFSET);
-
 	if (lrbp->intr_cmd)
 		dword_0 |= UTP_REQ_DESC_INT_CMD;
 
@@ -2617,7 +2609,7 @@ static int ufshcd_compose_devman_upiu(struct ufs_hba *hba,
 	else
 		lrbp->command_type = UTP_CMD_TYPE_UFS_STORAGE;
 
-	ufshcd_prepare_req_desc_hdr(hba, lrbp, &upiu_flags, DMA_NONE);
+	ufshcd_prepare_req_desc_hdr(lrbp, &upiu_flags, DMA_NONE);
 	if (hba->dev_cmd.type == DEV_CMD_TYPE_QUERY)
 		ufshcd_prepare_utp_query_req_upiu(hba, lrbp, upiu_flags);
 	else if (hba->dev_cmd.type == DEV_CMD_TYPE_NOP)
@@ -3547,13 +3539,13 @@ int ufshcd_read_desc_param_sel(struct ufs_hba *hba,
 	/* Get the max length of descriptor from structure filled up at probe
 	 * time.
 	 */
-	ret = ufshcd_map_desc_id_to_length(hba, desc_id, &buff_len);
+	ufshcd_map_desc_id_to_length(hba, desc_id, &buff_len);
 
 	/* Sanity checks */
-	if (ret || !buff_len) {
-		dev_err(hba->dev, "%s: Failed to get full descriptor length",
+	if (!buff_len) {
+		dev_err(hba->dev, "%s: Failed to get full descriptor length\n",
 			__func__);
-		return ret;
+		return -EINVAL;
 	}
 
 	/* Check whether we need temp memory */
@@ -3595,26 +3587,6 @@ out:
 	if (is_kmalloc)
 		kfree(desc_buf);
 	return ret;
-}
-static inline int ufshcd_read_desc(struct ufs_hba *hba,
-				   enum desc_idn desc_id,
-				   int desc_index,
-				   void *buf,
-				   u32 size)
-{
-	return ufshcd_read_desc_param(hba, desc_id, desc_index, 0, buf, size);
-}
-
-static inline int ufshcd_read_power_desc(struct ufs_hba *hba,
-					 u8 *buf,
-					 u32 size)
-{
-	return ufshcd_read_desc(hba, QUERY_DESC_IDN_POWER, 0, buf, size);
-}
-
-static int ufshcd_read_device_desc(struct ufs_hba *hba, u8 *buf, u32 size)
-{
-	return ufshcd_read_desc(hba, QUERY_DESC_IDN_DEVICE, 0, buf, size);
 }
 
 /**
@@ -6924,7 +6896,7 @@ static int ufshcd_issue_devman_upiu_cmd(struct ufs_hba *hba,
 	/* update the task tag in the request upiu */
 	req_upiu->header.dword_0 |= cpu_to_be32(tag);
 
-	ufshcd_prepare_req_desc_hdr(hba, lrbp, &upiu_flags, DMA_NONE);
+	ufshcd_prepare_req_desc_hdr(lrbp, &upiu_flags, DMA_NONE);
 
 	/* just copy the upiu request as it is */
 	memcpy(lrbp->ucd_req_ptr, req_upiu, sizeof(*lrbp->ucd_req_ptr));
@@ -7125,82 +7097,6 @@ static int ufshcd_try_to_abort_task(struct ufs_hba *hba, int tag)
 	int poll_cnt;
 	u8 resp = 0xF;
 	u32 reg;
-
-	host = cmd->device->host;
-	hba = shost_priv(host);
-	tag = cmd->request->tag;
-	lrbp = &hba->lrb[tag];
-
-#if defined(CONFIG_MI_MEMORY_SYSFS)
-	ufsdbg_set_err_state("ufshcd_abort\n");
-#endif
-
-	if (!ufshcd_valid_tag(hba, tag)) {
-		dev_err(hba->dev,
-			"%s: invalid command tag %d: cmd=0x%p, cmd->request=0x%p",
-			__func__, tag, cmd, cmd->request);
-		BUG();
-	}
-
-	/*
-	 * Task abort to the device W-LUN is illegal. When this command
-	 * will fail, due to spec violation, scsi err handling next step
-	 * will be to send LU reset which, again, is a spec violation.
-	 * To avoid these unnecessary/illegal step we skip to the last error
-	 * handling stage: reset and restore.
-	 */
-	if (lrbp->lun == UFS_UPIU_UFS_DEVICE_WLUN) {
-		ufshcd_vops_abort_handler(hba, tag, __FILE__, __LINE__);
-		return ufshcd_eh_host_reset_handler(cmd);
-	}
-
-	ufshcd_hold(hba, false);
-	dev_info(hba->dev,
-		"abort: tag %d, cmd 0x%x\n", tag, (int)cmd->cmnd[0]);
-
-	reg = ufshcd_readl(hba, REG_UTP_TRANSFER_REQ_DOOR_BELL);
-	/* If command is already aborted/completed, return SUCCESS */
-	if (!(test_bit(tag, &hba->outstanding_reqs))) {
-		dev_err(hba->dev,
-			"%s: cmd at tag %d already completed, outstanding=0x%lx, doorbell=0x%x\n",
-			__func__, tag, hba->outstanding_reqs, reg);
-		goto out;
-	}
-
-	if (!(reg & (1 << tag))) {
-		dev_err(hba->dev,
-		"%s: cmd was completed, but without a notifying intr, tag = %d",
-		__func__, tag);
-	}
-
-	/* Print Transfer Request of aborted task */
-	dev_err(hba->dev, "%s: Device abort task at tag %d\n", __func__, tag);
-	ufshcd_add_command_trace(hba, tag, "abort");
-
-	/*
-	 * Print detailed info about aborted request.
-	 * As more than one request might get aborted at the same time,
-	 * print full information only for the first aborted request in order
-	 * to reduce repeated printouts. For other aborted requests only print
-	 * basic details.
-	 */
-	scsi_print_command(hba->lrb[tag].cmd);
-	if (!hba->req_abort_count) {
-		ufshcd_update_evt_hist(hba, UFS_EVT_ABORT, 0);
-		ufshcd_print_info(hba, UFS_INFO_HOST_STATE |
-				  UFS_INFO_HOST_REGS | UFS_INFO_PWR);
-		ufshcd_print_trs(hba, 1 << tag, true);
-		ufshcd_vops_abort_handler(hba, tag, __FILE__, __LINE__);
-	} else {
-		ufshcd_print_trs(hba, 1 << tag, false);
-	}
-	hba->req_abort_count++;
-
-	/* Skip task abort in case previous aborts failed and report failure */
-	if (lrbp->req_abort_skip) {
-		err = -EIO;
-		goto out;
-	}
 
 	for (poll_cnt = 100; poll_cnt; poll_cnt--) {
 		err = ufshcd_issue_tm_cmd(hba, lrbp->lun, lrbp->task_tag,

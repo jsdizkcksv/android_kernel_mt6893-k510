@@ -3,6 +3,22 @@
 ifeq (y, $(filter y, $(CONFIG_DRM_MEDIATEK_V2)))
 obj-$(CONFIG_DRM_MEDIATEK) += mediatek_v2/
 obj-$(CONFIG_DRM_MEDIATEK) += mml/
+
+# AGATE: the MI display layer (panel/sysfs/notifier glue) is used by
+# mediatek_v2 as well and has to be linked together with it.
+mediatek-mi-disp-y := mi_disp/mi_disp_sysfs.o \
+		  mi_disp/mi_dsi_display.o \
+		  mi_disp/mi_dsi_panel.o \
+		  mi_disp/mi_disp_notifier.o \
+		  mi_disp/mi_disp_core.o \
+		  mi_disp/mi_disp_feature.o \
+		  mi_disp/mi_disp_log.o \
+		  mi_disp/mi_disp_procfs.o \
+		  mi_disp/mi_disp_file.o \
+		  mi_disp/mi_disp_print.o \
+		  mi_disp/mi_disp_debugfs.o \
+		  mi_disp/mi_cooler_brightness_clone.o
+obj-$(CONFIG_DRM_MEDIATEK) += mediatek-mi-disp.o
 else
 
 mediatek-drm-y := mtk_disp_color.o \

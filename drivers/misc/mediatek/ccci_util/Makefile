@@ -31,7 +31,7 @@ ccflags-y += -I$(srctree)/drivers/misc/mediatek/ccci_util
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/
 
 ifeq ($(CONFIG_MTK_SECURITY_SW_SUPPORT), y)
-ccflags-y += -I$(srctree)/drivers/misc/mediatek/masp/asfv2/asf_export_inc
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/masp/asfv3/inc
 ccflags-y += -DENABLE_MD_IMG_SECURITY_FEATURE
 endif
 

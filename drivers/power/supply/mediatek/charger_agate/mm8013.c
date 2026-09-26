@@ -285,8 +285,8 @@ int mm8013_get_info(enum power_supply_property info_type, int *val)
 static int force_get_tbat_mm8013(bool update, int *temp)
 {
 	static int pre_bat_temp = -50;
-	static struct timespec pre_time;
-	struct timespec ctime, dtime;
+	static struct timespec64 pre_time;
+	struct timespec64 ctime, dtime;
 	int bat_temp;
 	int ret;
 
@@ -295,10 +295,10 @@ static int force_get_tbat_mm8013(bool update, int *temp)
 		if (ret)
 			return ret;
 		if (pre_bat_temp == -50) {
-			get_monotonic_boottime(&pre_time);
+			ktime_get_boottime_ts64(&pre_time);
 		} else {
-			get_monotonic_boottime(&ctime);
-			dtime = timespec_sub(ctime, pre_time);
+			ktime_get_boottime_ts64(&ctime);
+			dtime = timespec64_sub(ctime, pre_time);
 
 			if (((dtime.tv_sec <= 20) &&
 				(abs(pre_bat_temp-bat_temp) >= 50)) || bat_temp >= 580) {
@@ -327,8 +327,8 @@ bool battery_adjust_capacity(int *capacity)
 {
 	static bool keep_full;
 	static int last_capacity = -1;
-	static struct timespec pre_time;
-	struct timespec ctime, dtime;
+	static struct timespec64 pre_time;
+	struct timespec64 ctime, dtime;
 	int avg_value;
 
 	if (battery_main.BAT_STATUS == POWER_SUPPLY_STATUS_FULL
@@ -344,14 +344,14 @@ bool battery_adjust_capacity(int *capacity)
 	}
 
 	if (last_capacity == -1) {
-		get_monotonic_boottime(&pre_time);
+		ktime_get_boottime_ts64(&pre_time);
 		last_capacity = *capacity;
 	} else if (keep_full) {
-		get_monotonic_boottime(&pre_time);
+		ktime_get_boottime_ts64(&pre_time);
 		last_capacity = 100;
 	} else if (last_capacity != *capacity) {
-		get_monotonic_boottime(&ctime);
-		dtime = timespec_sub(ctime, pre_time);
+		ktime_get_boottime_ts64(&ctime);
+		dtime = timespec64_sub(ctime, pre_time);
 		if (battery_main.BAT_STATUS == POWER_SUPPLY_STATUS_FULL && *capacity < 100) {
 			if (dtime.tv_sec >= 10) {
 				*capacity = last_capacity+(last_capacity < 100?1:0);

@@ -793,6 +793,17 @@ static int ree_service_threads(uint32_t type, uint32_t val_a, uint32_t val_b,
 }
 
 #if IS_ENABLED(CONFIG_TEE)
+/*
+ * AGATE 5.10 port: the tee_client_api.h reachable from this driver is the
+ * MICROTRUST (OP-TEE style) one, which only provides the TEEC_*_ names.
+ * Forward declare the GlobalPlatform object types so the prototyes below
+ * do not introduce function-local struct tags (clang -Wvisibility).
+ */
+struct teec_context;
+struct teec_session;
+struct teec_uuid;
+struct teec_operation;
+
 /* teec weak functions are used when teec function are unavailable. */
 __weak u32 teec_initialize_context(const char *name, struct teec_context *context)
 {

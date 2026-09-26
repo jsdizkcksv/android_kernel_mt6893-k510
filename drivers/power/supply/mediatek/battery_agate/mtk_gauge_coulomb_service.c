@@ -7,6 +7,7 @@
 #include <mt-plat/v1/mtk_battery.h>
 #include <linux/list.h>
 #include <linux/device.h>
+#include <linux/timekeeping.h>
 #include <linux/delay.h>
 #include <linux/kthread.h>
 #endif
@@ -371,7 +372,7 @@ void gauge_coulomb_stop(struct gauge_consumer *coulomb)
 
 }
 
-static struct timespec sstart[10];
+static struct timespec64 sstart[10];
 void gauge_coulomb_int_handler(void)
 {
 	int car, hw_car;
@@ -379,12 +380,12 @@ void gauge_coulomb_int_handler(void)
 	struct list_head *phead;
 	struct gauge_consumer *ptr = NULL;
 
-	get_monotonic_boottime(&sstart[0]);
+	ktime_get_boottime_ts64(&sstart[0]);
 	car = gauge_get_coulomb();
 	ft_trace("[%s] car:%d preCar:%d\n",
 		__func__,
 		car, pre_coulomb);
-	get_monotonic_boottime(&sstart[1]);
+	ktime_get_boottime_ts64(&sstart[1]);
 
 	if (list_empty(&coulomb_head_plus) != true) {
 		pos = coulomb_head_plus.next;
@@ -479,20 +480,20 @@ void gauge_coulomb_int_handler(void)
 		ft_trace("- list is empty\n");
 
 	pre_coulomb = car;
-	get_monotonic_boottime(&sstart[2]);
-	sstart[0] = timespec_sub(sstart[1], sstart[0]);
-	sstart[1] = timespec_sub(sstart[2], sstart[1]);
+	ktime_get_boottime_ts64(&sstart[2]);
+	sstart[0] = timespec64_sub(sstart[1], sstart[0]);
+	sstart[1] = timespec64_sub(sstart[2], sstart[1]);
 }
 
 static int gauge_coulomb_thread(void *arg)
 {
 	unsigned long flags = 0;
-	struct timespec start, end, duraction;
+	struct timespec64 start, end, duraction;
 
 	while (1) {
 		wait_event(wait_que, (coulomb_thread_timeout == true));
 		coulomb_thread_timeout = false;
-		get_monotonic_boottime(&start);
+		ktime_get_boottime_ts64(&start);
 		ft_trace("[%s]=>\n", __func__);
 		mutex_coulomb_lock();
 		gauge_coulomb_int_handler();
@@ -503,8 +504,8 @@ static int gauge_coulomb_thread(void *arg)
 		spin_unlock_irqrestore(&slock, flags);
 
 
-		get_monotonic_boottime(&end);
-		duraction = timespec_sub(end, start);
+		ktime_get_boottime_ts64(&end);
+		duraction = timespec64_sub(end, start);
 
 		ft_trace(
 			"%s time:%d ms %d %d\n",

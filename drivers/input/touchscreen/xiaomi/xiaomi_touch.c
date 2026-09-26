@@ -178,13 +178,13 @@ struct xiaomi_touch *xiaomi_touch_dev_get(int minor)
 		return NULL;
 }
 
-struct class *get_xiaomi_touch_class()
+struct class *get_xiaomi_touch_class(void)
 {
 	return xiaomi_touch_dev.class;
 }
 EXPORT_SYMBOL_GPL(get_xiaomi_touch_class);
 
-struct device *get_xiaomi_touch_dev()
+struct device *get_xiaomi_touch_dev(void)
 {
 	return xiaomi_touch_dev.dev;
 }
@@ -465,7 +465,7 @@ int copy_touch_rawdata(char *raw_base,  int len)
 }
 EXPORT_SYMBOL_GPL(copy_touch_rawdata);
 
-int update_touch_rawdata()
+int update_touch_rawdata(void)
 {
 	sysfs_notify(&xiaomi_touch_dev.dev->kobj, NULL,  "update_rawdata");
 
@@ -931,7 +931,7 @@ static int32_t event_show(struct seq_file *m, void *v)
 
 	if (event_info->state == EVENT_INIT)
 		return 0;
-	rtc_time_to_tm(event_info->touch_time.tv_sec, &tm);
+	rtc_time64_to_tm(event_info->touch_time.tv_sec, &tm);
 	seq_printf(m, "%d-%02d-%02d %02d:%02d:%02d.%09lu UTC Finger (%2d) %s\n",
 		tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
 		tm.tm_hour, tm.tm_min, tm.tm_sec, event_info->touch_time.tv_nsec,
@@ -970,18 +970,17 @@ void last_touch_events_collect(int slot, int state)
 	event_info = &event->touch_event_buf[event->head];
 	event_info->state = !!state ? EVENT_DOWN : EVENT_UP;
 	event_info->slot = slot;
-	getnstimeofday(&event_info->touch_time);
+	ktime_get_real_ts64(&event_info->touch_time);
 	event->head++;
 	event->head &= LAST_TOUCH_EVENTS_MAX - 1;
 }
 EXPORT_SYMBOL_GPL(last_touch_events_collect);
 
-struct file_operations last_touch_events_ops = {
-	.owner = THIS_MODULE,
-	.open = last_touch_events_open,
-	.read = seq_read,
-	.llseek = seq_lseek,
-	.release = seq_release,
+struct proc_ops last_touch_events_ops = {
+	.proc_open = last_touch_events_open,
+	.proc_read = seq_read,
+	.proc_lseek = seq_lseek,
+	.proc_release = seq_release,
 };
 
 static const struct of_device_id xiaomi_touch_of_match[] = {

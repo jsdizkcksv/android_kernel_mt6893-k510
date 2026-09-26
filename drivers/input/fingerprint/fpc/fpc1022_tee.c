@@ -251,7 +251,6 @@ static ssize_t hw_reset_set(struct device *dev,
 			    size_t count)
 {
 	int ret;
-	struct fpc1022_data *fpc1022 = dev_get_drvdata(dev);
 
 	if (!strncmp(buf, "reset", strlen("reset"))) {
 		power_reset();
@@ -272,7 +271,6 @@ static ssize_t wakeup_enable_set(struct device *dev,
 				 struct device_attribute *attr, const char *buf,
 				 size_t count)
 {
-	struct fpc1022_data *fpc1022 = dev_get_drvdata(dev);
 
 /*
 	if (!strncmp(buf, "enable", strlen("enable"))) {

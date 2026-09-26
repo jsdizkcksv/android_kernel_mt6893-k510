@@ -83,7 +83,7 @@
 #endif
 
 #ifndef EP_MARK_SMI
-// #include <smi_public.h>
+// #include <soc/mediatek/smi.h>
 /*for SMI BW debug log*/
 /* #include <smi_debug.h> */
 #endif

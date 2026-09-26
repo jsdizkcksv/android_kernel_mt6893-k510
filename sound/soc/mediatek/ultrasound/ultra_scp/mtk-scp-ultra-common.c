@@ -30,21 +30,12 @@ int ultra_set_dsp_afe(struct mtk_base_afe *afe)
 	return 0;
 }
 EXPORT_SYMBOL_GPL(ultra_set_dsp_afe);
-struct mtk_base_afe *get_afe_base(void)
+struct mtk_base_afe *ultra_get_afe_base(void)
 {
 	if (!local_scp_ultra_afe)
 		pr_err("%s(), local_scp_ultra_afe is NULL", __func__);
 
 	return local_scp_ultra_afe;
-}
-void set_ipi_recv_private(void *priv)
-{
-	pr_debug("%s\n", __func__);
-
-	if (priv != NULL)
-		ipi_recv_private = priv;
-	else
-		pr_debug("%s ipi_recv_private has been set\n", __func__);
 }
 
 void *ultra_get_ipi_recv_private(void)
@@ -67,7 +58,7 @@ void ultra_set_ipi_recv_private(void *priv)
 
 void set_afe_dl_irq_target(int scp_enable)
 {
-	struct mtk_base_afe *afe = get_afe_base();
+	struct mtk_base_afe *afe = ultra_get_afe_base();
 	struct mtk_base_scp_ultra *scp_ultra = get_scp_ultra_base();
 	struct mtk_base_afe_memif *memif =
 		&afe->memif[scp_ultra->ultra_mem.ultra_dl_memif_id];
@@ -102,7 +93,7 @@ void set_afe_dl_irq_target(int scp_enable)
 }
 void set_afe_ul_irq_target(int scp_enable)
 {
-	struct mtk_base_afe *afe = get_afe_base();
+	struct mtk_base_afe *afe = ultra_get_afe_base();
 	struct mtk_base_scp_ultra *scp_ultra = get_scp_ultra_base();
 	struct mtk_base_afe_memif *memif =
 		&afe->memif[scp_ultra->ultra_mem.ultra_ul_memif_id];

@@ -5,6 +5,7 @@
 
 #include <linux/errno.h>
 #include <linux/slab.h>
+#include <linux/kmemleak.h>
 #include <linux/dma-direction.h>
 #include <linux/scatterlist.h>
 #include <linux/dma-mapping.h>
@@ -212,7 +213,7 @@ int reviser_mem_alloc(struct device *dev, struct reviser_mem *mem, bool fix)
 	 * The pointer is using for debugging,
 	 * but it will be used by other apusys HW
 	 */
-	kmemleak_no_scan(kva);
+	kmemleak_ignore(kva);
 #endif
 	mem->kva = (uint64_t)kva;
 	mem->iova = (uint64_t)iova;

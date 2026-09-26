@@ -588,7 +588,7 @@ enum apdo_max_power {
 };
 
 #define WIRE_SUPER_POWER_MAX	50
-extern mtk_super_charge;
+extern int mtk_super_charge;
 int get_quick_charge_type(struct mt_charger *mtk_chg)
 {
 	int i = 0, rc, chg_type;
@@ -740,7 +740,7 @@ static int mt_usb_get_property(struct power_supply *psy,
 #endif
 #ifdef CONFIG_XMUSB350_DET_CHG
 	int rc = 0, chg_type = 0;
-	bool vbus_disable;
+	bool vbus_disable = false;
 
 	if (!mtk_chg->chg2_dev)
 		mtk_chg->chg2_dev = get_charger_by_name("secondary_chg");
@@ -1295,7 +1295,7 @@ static int pd_tcp_notifier_call(struct notifier_block *pnb,
 	int rc;
 	union power_supply_propval pval = {0,};
 	struct power_supply	*usb_psy;
-	struct charger_device *chg2_dev;
+	struct charger_device *chg2_dev = NULL;
 	struct mt_charger *mtk_chg_ac;
 	struct mt_charger *mtk_chg_usb;
 	struct power_supply *ac_psy = power_supply_get_by_name("ac");

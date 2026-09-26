@@ -252,7 +252,7 @@ struct bq_fg_chip {
 	struct power_supply *usb_psy;
 	struct power_supply *batt_psy;
 	struct power_supply_desc fg_psy_d;
-	struct timeval suspend_time;
+	struct timespec64 suspend_time;
 
 	u8 digest[BATTERY_DIGEST_LEN];
 	u8 digest_120w[BATTERY_DIGEST_LEN_120W];
@@ -1447,7 +1447,8 @@ static int fg_get_property(struct power_supply *psy, enum power_supply_property 
 		if (bq->shutdown_delay_enable) {
 			if (val->intval == 0) {
 				vbat_mv = fg_read_volt(bq);
-				if (bq->batt_psy) {
+				status = POWER_SUPPLY_STATUS_UNKNOWN;
+			if (bq->batt_psy) {
 					power_supply_get_property(bq->batt_psy,
 						POWER_SUPPLY_PROP_STATUS, &pval);
 					status = pval.intval;
@@ -2490,13 +2491,13 @@ out:
 	return 0;
 }
 
-static int calc_suspend_time(struct timeval *time_start, int *delta_time)
+static int calc_suspend_time(struct timespec64 *time_start, int *delta_time)
 {
-	struct timeval time_now;
+	struct timespec64 time_now;
 
 	*delta_time = 0;
 
-	do_gettimeofday(&time_now);
+	ktime_get_real_ts64(&time_now);
 	*delta_time = (time_now.tv_sec - time_start->tv_sec);
 	if (*delta_time < 0)
 		*delta_time = 0;
@@ -3068,7 +3069,7 @@ static int bq_fg_suspend(struct device *dev)
 
 	cancel_delayed_work_sync(&bq->monitor_work);
 	bq->skip_reads = true;
-	do_gettimeofday(&bq->suspend_time);
+	ktime_get_real_ts64(&bq->suspend_time);
 
 	return 0;
 }

@@ -1707,14 +1707,14 @@ static int sgm41516d_set_pep20_efficiency_table(struct charger_device *chg_dev)
 	return 0;
 }
 
-struct timespec ptime[13];
+struct timespec64 ptime[13];
 static int cptime[13][2];
 
 static int dtime(int i)
 {
-	struct timespec time;
+	struct timespec64 time;
 
-	time = timespec_sub(ptime[i], ptime[i-1]);
+	time = timespec64_sub(ptime[i], ptime[i-1]);
 	return time.tv_nsec/1000000;
 }
 
@@ -1738,13 +1738,13 @@ static int sgm41516d_set_pep20_current_pattern(struct charger_device *chg_dev,
 	sgm41516d_set_input_current(chg_dev,0);
 	mdelay(150);
 
-	get_monotonic_boottime(&ptime[j++]);
+	ktime_get_boottime_ts64(&ptime[j++]);
 	for (i = 4; i >= 0; i--) {
 		flag = value & (1 << i);
 		if (flag == 0) {
 			sgm41516d_set_input_current(chg_dev,800000);
 			mdelay(PEOFFTIME);
-			get_monotonic_boottime(&ptime[j]);
+			ktime_get_boottime_ts64(&ptime[j]);
 			cptime[j][0] = PEOFFTIME;
 			cptime[j][1] = dtime(j);
 			if (cptime[j][1] < 30 || cptime[j][1] > 65) {
@@ -1754,7 +1754,7 @@ static int sgm41516d_set_pep20_current_pattern(struct charger_device *chg_dev,
 			j++;
 			sgm41516d_set_input_current(chg_dev,0);
 			mdelay(PEONTIME);
-			get_monotonic_boottime(&ptime[j]);
+			ktime_get_boottime_ts64(&ptime[j]);
 			cptime[j][0] = PEONTIME;
 			cptime[j][1] = dtime(j);
 			if (cptime[j][1] < 90 || cptime[j][1] > 115) {
@@ -1765,7 +1765,7 @@ static int sgm41516d_set_pep20_current_pattern(struct charger_device *chg_dev,
 		} else {
 			sgm41516d_set_input_current(chg_dev,800000);
 			mdelay(PEONTIME);
-			get_monotonic_boottime(&ptime[j]);
+			ktime_get_boottime_ts64(&ptime[j]);
 			cptime[j][0] = PEONTIME;
 			cptime[j][1] = dtime(j);
 			if (cptime[j][1] < 90 || cptime[j][1] > 115) {
@@ -1775,7 +1775,7 @@ static int sgm41516d_set_pep20_current_pattern(struct charger_device *chg_dev,
 			j++;
 			sgm41516d_set_input_current(chg_dev,0);
 			mdelay(PEOFFTIME);
-			get_monotonic_boottime(&ptime[j]);
+			ktime_get_boottime_ts64(&ptime[j]);
 			cptime[j][0] = PEOFFTIME;
 			cptime[j][1] = dtime(j);
 			if (cptime[j][1] < 30 || cptime[j][1] > 65) {
@@ -1788,7 +1788,7 @@ static int sgm41516d_set_pep20_current_pattern(struct charger_device *chg_dev,
 
 	sgm41516d_set_input_current(chg_dev,800000);
 	mdelay(200);
-	get_monotonic_boottime(&ptime[j]);
+	ktime_get_boottime_ts64(&ptime[j]);
 	cptime[j][0] = 200;
 	cptime[j][1] = dtime(j);
 	if (cptime[j][1] < 180 || cptime[j][1] > 240) {

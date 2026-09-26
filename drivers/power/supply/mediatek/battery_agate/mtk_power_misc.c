@@ -10,6 +10,7 @@
 #include <linux/reboot.h>
 #include <linux/kthread.h>
 #include <linux/device.h>
+#include <linux/timekeeping.h>
 #include <linux/platform_device.h>
 #include <linux/alarmtimer.h>
 #include <linux/suspend.h>
@@ -40,7 +41,7 @@ struct shutdown_controller {
 	bool overheat;
 	wait_queue_head_t  wait_que;
 	struct shutdown_condition shutdown_status;
-	struct timespec pre_time[SHUTDOWN_FACTOR_MAX];
+	struct timespec64 pre_time[SHUTDOWN_FACTOR_MAX];
 	int avgvbat;
 	bool lowbatteryshutdown;
 	int batdata[AVGVBAT_ARRAY_SIZE];
@@ -193,7 +194,7 @@ int set_shutdown_cond(int shutdown_cond)
 				if (now_is_charging != 1) {
 					sds->is_soc_zero_percent =
 						true;
-					get_monotonic_boottime(
+					ktime_get_boottime_ts64(
 						&sdc.pre_time[
 						SOC_ZERO_PERCENT]);
 					bm_err("[%s]soc_zero_percent shutdown\n",
@@ -211,7 +212,7 @@ int set_shutdown_cond(int shutdown_cond)
 				if (now_is_charging != 1) {
 					sds->is_uisoc_one_percent =
 						true;
-					get_monotonic_boottime(
+					ktime_get_boottime_ts64(
 					&sdc.pre_time[UISOC_ONE_PERCENT]);
 					bm_err("[%s]uisoc 1 percent shutdown\n",
 						__func__);
@@ -243,7 +244,7 @@ int set_shutdown_cond(int shutdown_cond)
 	case DLPT_SHUTDOWN:
 		if (sdc.shutdown_status.is_dlpt_shutdown != true) {
 			sdc.shutdown_status.is_dlpt_shutdown = true;
-			get_monotonic_boottime(&sdc.pre_time[DLPT_SHUTDOWN]);
+			ktime_get_boottime_ts64(&sdc.pre_time[DLPT_SHUTDOWN]);
 			notify_fg_dlpt_sd();
 		}
 		break;
@@ -270,7 +271,7 @@ int next_waketime(int polling)
 
 static int shutdown_event_handler(struct shutdown_controller *sdd)
 {
-	struct timespec now, duraction;
+	struct timespec64 now, duraction;
 	int polling = 0;
 	static int ui_zero_time_flag;
 	static int down_to_low_bat;
@@ -285,7 +286,7 @@ static int shutdown_event_handler(struct shutdown_controller *sdd)
 	duraction.tv_sec = 0;
 	duraction.tv_nsec = 0;
 
-	get_monotonic_boottime(&now);
+	ktime_get_boottime_ts64(&now);
 
 	bm_err("%s:soc_zero:%d,ui 1percent:%d,dlpt_shut:%d,under_shutdown_volt:%d\n",
 		__func__,
@@ -297,7 +298,7 @@ static int shutdown_event_handler(struct shutdown_controller *sdd)
 
 	if (sdd->shutdown_status.is_soc_zero_percent) {
 		if (current_ui_soc == 0) {
-			duraction = timespec_sub(
+			duraction = timespec64_sub(
 				now, sdd->pre_time[SOC_ZERO_PERCENT]);
 			polling++;
 			if (duraction.tv_sec >= SHUTDOWN_TIME) {
@@ -321,7 +322,7 @@ static int shutdown_event_handler(struct shutdown_controller *sdd)
 
 		if (current_ui_soc == 0) {
 			duraction =
-				timespec_sub(
+				timespec64_sub(
 				now, sdd->pre_time[UISOC_ONE_PERCENT]);
 			polling++;
 			if (duraction.tv_sec >= SHUTDOWN_TIME) {
@@ -344,7 +345,7 @@ static int shutdown_event_handler(struct shutdown_controller *sdd)
 	}
 
 	if (sdd->shutdown_status.is_dlpt_shutdown) {
-		duraction = timespec_sub(now, sdd->pre_time[DLPT_SHUTDOWN]);
+		duraction = timespec64_sub(now, sdd->pre_time[DLPT_SHUTDOWN]);
 		polling++;
 		if (duraction.tv_sec >= SHUTDOWN_TIME) {
 			bm_err("dlpt shutdown\n");
@@ -406,13 +407,13 @@ static int shutdown_event_handler(struct shutdown_controller *sdd)
 			}
 
 			if ((current_ui_soc == 0) && (ui_zero_time_flag == 0)) {
-				get_monotonic_boottime(
+				ktime_get_boottime_ts64(
 					&sdc.pre_time[LOW_BAT_VOLT]);
 				ui_zero_time_flag = 1;
 			}
 
 			if (current_ui_soc == 0) {
-				duraction = timespec_sub(
+				duraction = timespec64_sub(
 					now, sdd->pre_time[LOW_BAT_VOLT]);
 				if (duraction.tv_sec >= SHUTDOWN_TIME) {
 					bm_err("low bat shutdown, over %d second\n",
@@ -471,16 +472,16 @@ static enum alarmtimer_restart power_misc_kthread_fgtimer_func(
 void power_misc_handler(void *arg)
 {
 	struct shutdown_controller *sdd = arg;
-	struct timespec time, time_now, end_time;
+	struct timespec64 time, time_now, end_time;
 	ktime_t ktime;
 	int secs = 0;
 
 	secs = shutdown_event_handler(sdd);
 	if (secs != 0 && is_fg_disabled() == false) {
-		get_monotonic_boottime(&time_now);
+		ktime_get_boottime_ts64(&time_now);
 		time.tv_sec = secs;
 		time.tv_nsec = 0;
-		end_time = timespec_add(time_now, time);
+		end_time = timespec64_add(time_now, time);
 		ktime = ktime_set(end_time.tv_sec, end_time.tv_nsec);
 
 		alarm_start(&sdd->kthread_fgtimer, ktime);

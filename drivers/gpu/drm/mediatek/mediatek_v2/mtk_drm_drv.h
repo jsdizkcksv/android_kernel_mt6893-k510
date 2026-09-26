@@ -133,6 +133,10 @@ struct mtk_drm_private {
 
 	struct mtk_ddp_fb_info fb_info;
 
+	/* drm fbdev emulation (used by mtk_drm_fbdev.c) */
+	struct drm_fb_helper fb_helper;
+	struct drm_gem_object *fbdev_bo;
+
 	struct list_head lyeblob_head;
 	struct mutex lyeblob_list_mutex;
 	struct task_struct *fence_release_thread[MAX_CRTC-1];

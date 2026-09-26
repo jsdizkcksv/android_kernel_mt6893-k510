@@ -616,7 +616,7 @@ static int transceiver_calibration(struct hf_device *hf_dev,
 }
 
 static int transceiver_config(struct hf_device *hf_dev,
-		int sensor_type, void *data, uint8_t length)
+		int sensor_type, int32_t *data, uint8_t length)
 {
 	struct transceiver_device *dev = hf_dev->private_data;
 	struct transceiver_config *cfg = NULL;

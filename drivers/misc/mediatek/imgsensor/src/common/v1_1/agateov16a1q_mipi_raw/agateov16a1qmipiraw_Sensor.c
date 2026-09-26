@@ -507,9 +507,9 @@ static kal_uint32 streaming_control(kal_bool enable)
 #define MULTI_WRITE 1
 
 #if MULTI_WRITE
-static const int I2C_BUFFER_LEN = 765; /*trans# max is 255, each 4 bytes*/
+enum { I2C_BUFFER_LEN =765 }; /*trans# max is 255, each 4 bytes*/
 #else
-static const int I2C_BUFFER_LEN = 3;
+enum { I2C_BUFFER_LEN =3 };
 #endif
 
 static kal_uint16 table_write_cmos_sensor(kal_uint16 *para,

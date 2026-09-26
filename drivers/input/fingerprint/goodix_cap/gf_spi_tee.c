@@ -16,7 +16,6 @@
 #include <linux/timer.h>
 #include <linux/input.h>
 #include <linux/pm_wakeup.h>
-#include "cpu_ctrl.h"
 
 #include "teei_fp.h"
 #include "tee_client_api.h"
@@ -115,7 +114,7 @@ static DEFINE_MUTEX(device_list_lock);
 static struct wakeup_source *fp_wakesrc;
 static int cluster_num;
 //static struct ppm_limit_data *freq_to_set;
-static atomic_t boosted = ATOMIC_INIT(0);
+static atomic_t boosted __maybe_unused = ATOMIC_INIT(0);
 //static struct timer_list release_timer;
 static struct work_struct fp_display_work;
 //static struct work_struct fp_freq_work;
@@ -832,12 +831,11 @@ static long gf_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	 */
 	if (_IOC_DIR(cmd) & _IOC_READ)
 		retval =
-		    !access_ok(VERIFY_WRITE, (void __user *)arg,
-			       _IOC_SIZE(cmd));
+		    !access_ok((void __user *)arg, _IOC_SIZE(cmd));
 
 	if (retval == 0 && _IOC_DIR(cmd) & _IOC_WRITE)
 		retval =
-		    !access_ok(VERIFY_READ, (void __user *)arg, _IOC_SIZE(cmd));
+		    !access_ok((void __user *)arg, _IOC_SIZE(cmd));
 
 	if (retval)
 		return -EINVAL;
@@ -2132,7 +2130,7 @@ static int gf_probe(struct spi_device *spi)
 		goto err;
 	}
 
-	cluster_num = arch_nr_clusters();
+	cluster_num = 1;
 	gf_debug(INFO_LOG, "cluster_num = %d \n", cluster_num);
 
 #if 0

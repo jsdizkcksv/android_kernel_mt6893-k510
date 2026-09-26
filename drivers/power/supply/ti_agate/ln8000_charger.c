@@ -189,7 +189,7 @@ static int ln8000_set_sw_freq(struct ln8000_info *info, unsigned int cfg)
 }
 #endif
 
-static int ln8000_set_disovl(struct ln8000_info *info, u8 cfg)
+static int __maybe_unused ln8000_set_disovl(struct ln8000_info *info, u8 cfg)
 {
 	int ret;
 
@@ -1250,23 +1250,13 @@ DEFINE_SIMPLE_ATTRIBUTE(register_debug_ops, read_reg, write_reg, "0x%02llX\n");
 
 static int ln8000_create_debugfs_entries(struct ln8000_info *info)
 {
-	struct dentry *ent;
-
 	info->debug_root = debugfs_create_dir(ln8000_dev_name[info->dev_role], NULL);
 	if (!info->debug_root) {
 		ln_err("unable to create debug dir\n");
 		return -ENOENT;
 	} else {
-		ent = debugfs_create_x32("address", S_IFREG | S_IWUSR | S_IRUGO, info->debug_root, &(info->debug_address));
-		if (!ent) {
-			ln_err("unable to create address debug file\n");
-			return -ENOENT;
-		}
-		ent = debugfs_create_file("data", S_IFREG | S_IWUSR | S_IRUGO, info->debug_root, info, &register_debug_ops);
-		if (!ent) {
-			ln_err("unable to create data debug file\n");
-			return -ENOENT;
-		}
+		debugfs_create_x32("address", S_IFREG | S_IWUSR | S_IRUGO, info->debug_root, &(info->debug_address));
+		debugfs_create_file("data", S_IFREG | S_IWUSR | S_IRUGO, info->debug_root, info, &register_debug_ops);
 	}
 
 	return 0;
@@ -1515,7 +1505,7 @@ static int ln8000_get_dev_role(struct i2c_client *client)
 
 	dev_info(&client->dev, "%s: matched to %s\n", __func__, of_id->compatible);
 
-	return (int)of_id->data;
+	return (int)(unsigned long)of_id->data;
 }
 
 static int ln8000_parse_dt(struct ln8000_info *info)
@@ -1706,7 +1696,7 @@ static int ln8000_get_ibus_curr(struct charger_device *chg_dev, u32 *ibus_curr)
 static int ln8000_get_battery_temp(struct charger_device *chg_dev, int *bat_temp)
 {
 	struct ln8000_info *info = charger_get_data(chg_dev);
-	int ret;
+	int ret = 0;
 
 	if (info->pdata->tbat_mon_disable) {
 		*bat_temp = 0;
@@ -1719,7 +1709,7 @@ static int ln8000_get_battery_temp(struct charger_device *chg_dev, int *bat_temp
 	return ret;
 }
 
-static int ln8000_get_die_temp(struct charger_device *chg_dev, int *die_temp)
+static int __maybe_unused ln8000_get_die_temp(struct charger_device *chg_dev, int *die_temp)
 {
 	struct ln8000_info *info = charger_get_data(chg_dev);
 	int ret;

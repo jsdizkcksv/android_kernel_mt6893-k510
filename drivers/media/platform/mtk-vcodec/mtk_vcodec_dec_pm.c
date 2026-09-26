@@ -9,7 +9,7 @@
 #include <linux/of_address.h>
 #include <linux/of_platform.h>
 #include <linux/pm_runtime.h>
-#include <soc/mediatek/smi.h>
+#include "smi_public.h"
 #include <linux/slab.h>
 //#include "smi_public.h"
 #include "mtk_vcodec_dec_pm.h"

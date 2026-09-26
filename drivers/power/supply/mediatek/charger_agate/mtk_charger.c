@@ -26,6 +26,7 @@
 #include <linux/module.h>	/* For MODULE_ marcros  */
 #include <linux/fs.h>
 #include <linux/device.h>
+#include <linux/timekeeping.h>
 #include <linux/interrupt.h>
 #include <linux/spinlock.h>
 #include <linux/platform_device.h>
@@ -1419,8 +1420,7 @@ static int charger_ftm_release(struct inode *inode, struct file *file)
 }
 
 static const struct file_operations charger_ftm_fops = {
-	.owner = THIS_MODULE,
-	.unlocked_ioctl = charger_ftm_ioctl,
+		.unlocked_ioctl = charger_ftm_ioctl,
 #ifdef CONFIG_COMPAT
 	.compat_ioctl = charger_ftm_compat_ioctl,
 #endif
@@ -2958,7 +2958,7 @@ static void kpoc_power_off_check(struct charger_manager *info)
 static int charger_pm_event(struct notifier_block *notifier,
 			unsigned long pm_event, void *unused)
 {
-	struct timespec now;
+	struct timespec64 now;
 
 	switch (pm_event) {
 	case PM_SUSPEND_PREPARE:
@@ -2968,9 +2968,9 @@ static int charger_pm_event(struct notifier_block *notifier,
 	case PM_POST_SUSPEND:
 		pinfo->is_suspend = false;
 		chr_debug("%s: enter PM_POST_SUSPEND\n", __func__);
-		get_monotonic_boottime(&now);
+		ktime_get_boottime_ts64(&now);
 
-		if (timespec_compare(&now, &pinfo->endtime) >= 0 &&
+		if (timespec64_compare(&now, &pinfo->endtime) >= 0 &&
 			pinfo->endtime.tv_sec != 0 &&
 			pinfo->endtime.tv_nsec != 0) {
 			chr_err("%s: alarm timeout, wake up charger\n",
@@ -3015,7 +3015,7 @@ static enum alarmtimer_restart
 
 static void mtk_charger_start_timer(struct charger_manager *info)
 {
-	struct timespec time, time_now;
+	struct timespec64 time, time_now;
 	ktime_t ktime;
 	int ret = 0;
 
@@ -3026,10 +3026,10 @@ static void mtk_charger_start_timer(struct charger_manager *info)
 		return;
 	}
 
-	get_monotonic_boottime(&time_now);
+	ktime_get_boottime_ts64(&time_now);
 	time.tv_sec = info->polling_interval;
 	time.tv_nsec = 0;
-	info->endtime = timespec_add(time_now, time);
+	info->endtime = timespec64_add(time_now, time);
 
 	ktime = ktime_set(info->endtime.tv_sec, info->endtime.tv_nsec);
 
@@ -5240,11 +5240,11 @@ static int proc_dump_log_open(struct inode *inode, struct file *file)
 	return single_open(file, proc_dump_log_show, NULL);
 }
 
-static const struct file_operations charger_dump_log_proc_fops = {
-	.open = proc_dump_log_open,
-	.read = seq_read,
-	.llseek	= seq_lseek,
-	.write = proc_write,
+static const struct proc_ops charger_dump_log_proc_fops = {
+	.proc_open = proc_dump_log_open,
+	.proc_read = seq_read,
+	.proc_lseek	= seq_lseek,
+	.proc_write = proc_write,
 };
 
 void charger_debug_init(void)

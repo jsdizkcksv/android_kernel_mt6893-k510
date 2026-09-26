@@ -64,7 +64,7 @@
 #include <cmdq_helper_ext.h>
 #include <cmdq-util.h>
 #ifdef CONFIG_MTK_SMI_EXT /* [GKI Modify]+ */
-#include <smi_public.h>
+#include <soc/mediatek/smi.h>
 #endif
 
 /*#include <mt-plat/mtk_chip.h>*/

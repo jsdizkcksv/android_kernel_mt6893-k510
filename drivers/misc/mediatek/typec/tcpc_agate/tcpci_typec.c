@@ -10,8 +10,6 @@
 #include "inc/tcpci_typec.h"
 #include "inc/tcpci_timer.h"
 
-/* MTK only */
-#include <mt-plat/mtk_boot.h>
 
 #ifdef CONFIG_TYPEC_CAP_TRY_SOURCE
 #define CONFIG_TYPEC_CAP_TRY_STATE

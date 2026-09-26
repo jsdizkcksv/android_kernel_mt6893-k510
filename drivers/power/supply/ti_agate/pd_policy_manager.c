@@ -802,7 +802,6 @@ static int usbpd_pm_enable_cp(struct usbpd_pm *pdpm, bool enable)
 
 static int usbpd_pm_enable_cp_sec(struct usbpd_pm *pdpm, bool enable)
 {
-	int ret;
 
 	usbpd_check_cp_sec_psy(pdpm);
 
@@ -811,7 +810,7 @@ static int usbpd_pm_enable_cp_sec(struct usbpd_pm *pdpm, bool enable)
 
 	charger_dev_enable(pdpm->ch4_dev, enable);
 
-	return ret;
+	return 0;
 }
 
 static int usbpd_pm_check_cp_enabled(struct usbpd_pm *pdpm)
@@ -858,7 +857,6 @@ static int usbpd_pm_check_cp_enabled(struct usbpd_pm *pdpm)
 
 static int usbpd_pm_check_cp_sec_enabled(struct usbpd_pm *pdpm)
 {
-	int ret;
 
 	usbpd_check_cp_sec_psy(pdpm);
 
@@ -868,7 +866,7 @@ static int usbpd_pm_check_cp_sec_enabled(struct usbpd_pm *pdpm)
 	charger_dev_is_enabled(pdpm->ch4_dev, &pdpm->cp_sec.charge_enabled);
 
 	pr_debug("pdpm->cp_sec.charge_enabled:%d\n", pdpm->cp_sec.charge_enabled);
-	return ret;
+	return 0;
 }
 
 static int usbpd_pm_sc8551_set_charge_mode(struct usbpd_pm *pdpm, int mode)

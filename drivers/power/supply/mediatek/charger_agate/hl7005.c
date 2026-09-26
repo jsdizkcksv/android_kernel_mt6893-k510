@@ -8,6 +8,7 @@
 #include <linux/module.h>
 #include <linux/fs.h>
 #include <linux/device.h>
+#include <linux/timekeeping.h>
 #include <linux/interrupt.h>
 #include <linux/spinlock.h>
 #include <linux/platform_device.h>
@@ -770,15 +771,15 @@ static int hl7005_charger_enable_otg(struct charger_device *chg_dev, bool en)
 
 static void enable_boost_polling(bool poll_en)
 {
-	struct timespec time, time_now, end_time;
+	struct timespec64 time, time_now, end_time;
 	ktime_t ktime;
 
 	if (g_info) {
 		if (poll_en) {
-			get_monotonic_boottime(&time_now);
+			ktime_get_boottime_ts64(&time_now);
 			time.tv_sec = g_info->polling_interval;
 			time.tv_nsec = 0;
-			timespec_add(time_now, time);
+			timespec64_add(time_now, time);
 			ktime = ktime_set(end_time.tv_sec, end_time.tv_nsec);
 			alarm_start(&g_info->otg_kthread_gtimer, ktime);
 			g_info->polling_enabled = true;
@@ -792,7 +793,7 @@ static void enable_boost_polling(bool poll_en)
 static void usbotg_boost_kick_work(struct work_struct *work)
 {
 	ktime_t ktime;
-	struct timespec time, time_now, end_time;
+	struct timespec64 time, time_now, end_time;
 	struct hl7005_info *boost_manager =
 		container_of(work, struct hl7005_info, kick_work);
 
@@ -801,10 +802,10 @@ static void usbotg_boost_kick_work(struct work_struct *work)
 	hl7005_set_tmr_rst(1);
 
 	if (boost_manager->polling_enabled == true) {
-		get_monotonic_boottime(&time_now);
+		ktime_get_boottime_ts64(&time_now);
 		time.tv_sec = boost_manager->polling_interval;
 		time.tv_nsec = 0;
-		timespec_add(time_now, time);
+		timespec64_add(time_now, time);
 		ktime = ktime_set(end_time.tv_sec, end_time.tv_nsec);
 		alarm_start(&boost_manager->otg_kthread_gtimer, ktime);
 	}

@@ -15,6 +15,9 @@
 #include "../mtk-cmdq-ext.h"
 #endif
 
+#ifdef CONFIG_MTK_SMI_EXT
+#include <soc/mediatek/smi.h>
+#endif
 #include "../mtk_drm_ddp.h"
 #include "../mtk_drm_crtc.h"
 #include "../mtk_drm_drv.h"
@@ -994,7 +997,7 @@ void mmsys_config_dump_analysis_mt6789(void __iomem *config_regs)
 #ifdef CONFIG_MTK_SMI_EXT
 	if (greq0 || greq1) {
 		if (!in_interrupt())
-			smi_debug_bus_hang_detect(false, "DISP");
+			mtk_smi_dbg_hang_detect("DISP");
 		else
 			DDPDUMP("%s, Can't smi dump in IRQ\n", __func__);
 	}

@@ -4817,8 +4817,6 @@ unwind:
 
 	while (++i < pinned_pages) {
 		kbase_unpin_user_buf_page(pages[i]);
-	for (i = 0; i < pinned_pages; i++) {
-		put_page(pages[i]);
 		pages[i] = NULL;
 	}
 

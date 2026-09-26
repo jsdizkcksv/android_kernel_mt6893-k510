@@ -21,12 +21,13 @@
 #ifdef FEATURE_SCP_CCCI_SUPPORT
 #include "scp_ipi.h"
 
-#ifdef CCCI_KMODULE_ENABLE
 void ccci_scp_md_state_sync(int md_state);
 
 struct ccci_fsm_scp ccci_scp_ctl = {
 	.md_id = 0,
+#ifdef CCCI_KMODULE_ENABLE
 	.md_state_sync = &ccci_scp_md_state_sync,
+#endif
 };
 
 static struct ccci_clk_node scp_clk_table[] = {
@@ -36,7 +37,12 @@ static struct ccci_clk_node scp_clk_table[] = {
 
 void ccci_scp_md_state_sync(int md_state)
 {
-	schedule_work(&ccci_scp_ctl.scp_md_state_sync_work);
+	struct ccci_fsm_ctl *ctl = fsm_get_entity_by_md_id(ccci_scp_ctl.md_id);
+
+	if (ctl)
+		schedule_work(&ctl->scp_ctl->scp_md_state_sync_work);
+	else
+		schedule_work(&ccci_scp_ctl.scp_md_state_sync_work);
 }
 
 
@@ -48,8 +54,7 @@ void ccci_scp_md_state_sync(int md_state)
 #ifndef CCCI_LOG_LEVEL /* for platform override */
 #define CCCI_LOG_LEVEL CCCI_LOG_CRITICAL_UART
 #endif
-unsigned int ccci_debug_enable = CCCI_LOG_LEVEL;
-#endif
+/* ccci_debug_enable is provided by ccci_core.c in the 5.10 tree */
 
 static atomic_t scp_state = ATOMIC_INIT(SCP_CCCI_STATE_INVALID);
 static struct ccci_ipi_msg scp_ipi_tx_msg;
@@ -361,7 +366,6 @@ static int fsm_sim_type_handler(int md_id, int data)
 	return 0;
 }
 
-#ifdef CCCI_KMODULE_ENABLE
 #ifdef FEATURE_SCP_CCCI_SUPPORT
 void fsm_scp_init0(void)
 {
@@ -389,6 +393,7 @@ void fsm_scp_init0(void)
 		ccci_scp_md_state_sync(state);
 }
 
+#ifdef CCCI_KMODULE_ENABLE
 static int apsync_event(struct notifier_block *this,
 	unsigned long event, void *ptr)
 {
@@ -404,9 +409,10 @@ static int apsync_event(struct notifier_block *this,
 static struct notifier_block apsync_notifier = {
 	.notifier_call = apsync_event,
 };
-#endif
-#endif
+#endif /* CCCI_KMODULE_ENABLE */
+#endif /* FEATURE_SCP_CCCI_SUPPORT */
 
+#ifdef CCCI_KMODULE_ENABLE
 static int ccif_scp_clk_init(struct device *dev)
 {
 	int idx = 0;
@@ -439,15 +445,19 @@ static int fsm_scp_hw_init(struct ccci_fsm_scp *scp_ctl, struct device *dev)
 
 	return 0;
 }
+#endif /* CCCI_KMODULE_ENABLE */
 
+#ifdef CCCI_KMODULE_ENABLE
 int fsm_scp_init(struct ccci_fsm_scp *scp_ctl, struct device *dev)
+#else
+int fsm_scp_init(struct ccci_fsm_scp *scp_ctl)
+#endif
 {
 	int ret = 0;
 #ifndef CCCI_KMODULE_ENABLE
 	struct ccci_fsm_ctl *ctl =
 		container_of(scp_ctl, struct ccci_fsm_ctl, scp_ctl);
-#endif
-
+#else
 	ret = fsm_scp_hw_init(scp_ctl, dev);
 	if (ret < 0) {
 		CCCI_ERROR_LOG(-1, FSM, "ccci scp hw init fail\n");
@@ -463,6 +473,7 @@ int fsm_scp_init(struct ccci_fsm_scp *scp_ctl, struct device *dev)
 #ifdef FEATURE_SCP_CCCI_SUPPORT
 	scp_A_register_notify(&apsync_notifier);
 #endif
+#endif /* CCCI_KMODULE_ENABLE */
 #ifndef CCCI_KMODULE_ENABLE
 	scp_ctl->md_id = ctl->md_id;
 #endif

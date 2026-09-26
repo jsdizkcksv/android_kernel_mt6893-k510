@@ -829,7 +829,7 @@ int elliptic_system_configuration_param_put(
 	struct soc_mixer_control *mc =
 		(struct soc_mixer_control *)kcontrol->private_value;
 	struct elliptic_system_configuration_parameter param;
-	struct timeval tv;
+	struct timespec64 tv;
 
 	if (mc->reg != ELLIPTIC_SYSTEM_CONFIGURATION)
 		return -EINVAL;
@@ -952,7 +952,7 @@ int elliptic_system_configuration_param_put(
 		param.type = ESCPT_CALIBRATION_METHOD;
 		param.calibration_method =
 		elliptic_system_configuration_cache.calibration_method;
-		do_gettimeofday(&tv);
+		ktime_get_real_ts64(&tv);
 		param.calibration_timestamp = (int32_t)tv.tv_sec;
 		break;
 	case ELLIPTIC_SYSTEM_CONFIGURATION_DEBUG_MODE:

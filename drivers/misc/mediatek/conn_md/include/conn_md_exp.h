@@ -20,6 +20,9 @@
 #ifndef KERNEL_5_4_NOT_FINISH_PORTING
 #define    MD_MOD_EL1    5
 
+#ifndef __MTK_IPC_ILM_DEFINED__
+#define __MTK_IPC_ILM_DEFINED__
+
 struct local_para {
 	unsigned char ref_count;
 	unsigned char _stub; /* MD complier will align ref_count to 16bit */
@@ -44,6 +47,8 @@ struct ipc_ilm {
 	struct local_para *local_para_ptr;
 	struct peer_buff *peer_buff_ptr;
 }; /* for conn_md */
+
+#endif /* __MTK_IPC_ILM_DEFINED__ */
 #endif
 
 /*

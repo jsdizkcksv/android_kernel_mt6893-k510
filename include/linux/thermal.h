@@ -97,12 +97,6 @@ struct thermal_cooling_device_ops {
 				unsigned long target);
 	int (*get_min_state)(struct thermal_cooling_device *cdev,
 				unsigned long *target);
-	int (*get_requested_power)(struct thermal_cooling_device *,
-				   struct thermal_zone_device *, u32 *);
-	int (*state2power)(struct thermal_cooling_device *,
-			   struct thermal_zone_device *, unsigned long, u32 *);
-	int (*power2state)(struct thermal_cooling_device *,
-			   struct thermal_zone_device *, u32, unsigned long *);
 };
 
 struct thermal_cooling_device {

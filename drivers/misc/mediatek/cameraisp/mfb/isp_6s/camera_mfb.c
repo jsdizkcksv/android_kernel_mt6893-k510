@@ -34,7 +34,7 @@
 #if IS_ENABLED(CONFIG_MTK_CMDQ_MBOX_EXT)
 #include <cmdq-util.h>
 #endif
-#include <soc/mediatek/smi.h>
+#include "smi_public.h"
 #define MFB_PMQOS
 #ifdef MFB_PMQOS
 #include <linux/pm_opp.h>

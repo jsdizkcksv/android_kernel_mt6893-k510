@@ -4,6 +4,7 @@
 */
 
 #include <linux/device.h>
+#include <linux/timekeeping.h>
 #include <linux/delay.h>
 #include <linux/errno.h>
 #include <linux/mutex.h>
@@ -278,7 +279,7 @@ static void mtk_pe20_check_cable_impedance(struct charger_manager *pinfo)
 	int vchr1, vchr2, cable_imp;
 	unsigned int aicr_value;
 	bool mivr_state = false;
-	struct timespec ptime[2], diff;
+	struct timespec64 ptime[2], diff;
 	struct mtk_pe20 *pe20 = &pinfo->pe2;
 
 	chr_debug("%s: starts\n", __func__);
@@ -294,15 +295,15 @@ static void mtk_pe20_check_cable_impedance(struct charger_manager *pinfo)
 	/* Disable cable drop compensation */
 	charger_dev_enable_cable_drop_comp(pinfo->chg1_dev, false);
 
-	get_monotonic_boottime(&ptime[0]);
+	ktime_get_boottime_ts64(&ptime[0]);
 
 	/* Set ichg = 2500mA, set MIVR */
 	charger_dev_set_charging_current(pinfo->chg1_dev, 2500000);
 	mdelay(240);
 	pe20_set_mivr(pinfo, pinfo->data.min_charger_voltage);
 
-	get_monotonic_boottime(&ptime[1]);
-	diff = timespec_sub(ptime[1], ptime[0]);
+	ktime_get_boottime_ts64(&ptime[1]);
+	diff = timespec64_sub(ptime[1], ptime[0]);
 
 	aicr_value = 800000;
 	charger_dev_set_input_current(pinfo->chg1_dev, aicr_value);

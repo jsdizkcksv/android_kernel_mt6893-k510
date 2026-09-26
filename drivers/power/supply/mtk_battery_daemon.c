@@ -2410,7 +2410,7 @@ static ssize_t BAT_HEALTH_store(
 			else
 				strncpy(copy_str, s+1, chr_size-1);
 
-			kstrtoint(copy_str, 10, &value[count]);
+			(void)kstrtoint(copy_str, 10, &value[count]);
 			/* bm_err("::%s::count:%d,%d\n", copy_str, count, value[count]); */
 			s = pch;
 			pch = strchr(pch + 1, ',');

@@ -11,5 +11,5 @@
 # GNU General Public License for more details.
 #
 
-obj-y += agates5k5e9mipiraw_Sensor.o
+obj-y += $(subdrv-rpath)/agates5k5e9mipiraw_Sensor.o
 

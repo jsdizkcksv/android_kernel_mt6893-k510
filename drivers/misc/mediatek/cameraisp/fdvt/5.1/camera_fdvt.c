@@ -33,7 +33,7 @@
 #include <uapi/linux/dma-heap.h>
 #include <linux/pm_runtime.h>
 #include <linux/dma-buf.h>
-#include <soc/mediatek/smi.h>
+#include "smi_public.h"
 #include "linux/soc/mediatek/mtk-cmdq-ext.h"
 #include <cmdq-sec.h>
 #include <linux/suspend.h>
@@ -74,7 +74,7 @@
 #define CMDQ_MAIL_BOX
 
 #if CHECK_SERVICE_IF_0
-#include <smi_public.h>
+#include "smi_public.h"
 #include "mach/pseudo_m4u.h"
 #include <cmdq-sec.h>
 #endif

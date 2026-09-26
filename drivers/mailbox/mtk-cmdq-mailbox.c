@@ -390,7 +390,6 @@ static int cmdq_mbox_send_data(struct mbox_chan *chan, void *data)
 
 	return 0;
 }
-
 static int cmdq_mbox_startup(struct mbox_chan *chan)
 {
 	return 0;

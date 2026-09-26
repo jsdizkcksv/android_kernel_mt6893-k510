@@ -243,6 +243,8 @@ struct sys_config {
 	bool	cp_sec_enable;
 };
 
+struct tcpc_device;
+
 extern int tcpm_typec_set_custom_hv(
 	struct tcpc_device *tcpc_dev, bool en);
 #endif /* SRC_PDLIB_USB_PD_POLICY_MANAGER_H_ */

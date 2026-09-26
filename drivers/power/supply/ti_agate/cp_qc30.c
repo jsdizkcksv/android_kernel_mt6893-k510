@@ -57,6 +57,9 @@
 #include <mt-plat/v1/mtk_charger.h>
 
 #include "cp_qc30.h"
+#ifdef pr_debug
+#undef pr_debug
+#endif
 #define pr_debug pr_err
 #define BATT_MAX_CHG_VOLT		4450
 #define BATT_FAST_CHG_CURR		5400
@@ -561,7 +564,6 @@ static int cp_set_qc_bus_protections(int hvdcp3_type)
 
 static int cp_enable_sw(bool enable)
 {
-	int ret;
 	struct power_supply *psy;
 
 	psy = cp_get_sw_psy();
@@ -576,7 +578,7 @@ static int cp_enable_sw(bool enable)
 	cp_set_bq_charge_done(enable);
 	pm_state.sw_chager.charge_enabled = enable;
 
-	return ret;
+	return 0;
 }
 
 static int cp_check_fc_enabled(struct cp_qc30_data *chip)
@@ -610,14 +612,13 @@ static int cp_check_fc_enabled(struct cp_qc30_data *chip)
 
 static int cp_check_sw_enabled(void)
 {
-	int ret;
 	struct power_supply *psy;
 
 	psy = cp_get_sw_psy();
 	if (!psy)
 		return -ENODEV;
 
-	return ret;
+	return 0;
 }
 
 static int cp_tune_vbus_volt(bool up, int pulse)

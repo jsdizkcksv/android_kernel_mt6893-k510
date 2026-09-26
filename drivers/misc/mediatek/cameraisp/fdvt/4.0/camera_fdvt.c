@@ -63,7 +63,7 @@
 struct wakeup_source fdvt_wake_lock;
 #endif
 
-#include <smi_public.h>
+#include "smi_public.h"
 
 #include <m4u.h>
 

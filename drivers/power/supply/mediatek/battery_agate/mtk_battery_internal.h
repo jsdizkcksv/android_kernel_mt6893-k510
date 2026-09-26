@@ -711,7 +711,7 @@ struct simulator_log {
 #define ZCV_LOG_LEN 10
 
 struct zcv_log {
-	struct timespec time;
+	struct timespec64 time;
 	int car;
 	int dtime;
 	int dcar;
@@ -730,7 +730,7 @@ struct zcv_filter {
 
 struct ag_center_data_st {
 	int data[43];
-	struct timespec times[3];
+	struct timespec64 times[3];
 };
 struct mtk_battery {
 
@@ -866,7 +866,7 @@ struct mtk_battery {
 	int health;
 	int soc_decimal_rate;
 
-	struct timespec uisoc_oldtime;
+	struct timespec64 uisoc_oldtime;
 
 	signed int ptim_lk_v;
 	signed int ptim_lk_i;
@@ -884,10 +884,10 @@ struct mtk_battery {
 	struct gauge_consumer soc_plus;
 	struct gauge_consumer soc_minus;
 
-	struct timespec chr_full_handler_time;
+	struct timespec64 chr_full_handler_time;
 
 	/*sw average current*/
-	struct timespec sw_iavg_time;
+	struct timespec64 sw_iavg_time;
 	int sw_iavg_car;
 	int sw_iavg;
 	int sw_iavg_ht;
@@ -904,7 +904,7 @@ struct mtk_battery {
 
 	/*nafg monitor */
 	int last_nafg_cnt;
-	struct timespec last_nafg_update_time;
+	struct timespec64 last_nafg_update_time;
 	bool is_nafg_broken;
 
 	/* battery temperature table */

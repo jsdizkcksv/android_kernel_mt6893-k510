@@ -16,8 +16,11 @@
 #define MTK_M4U_PORT_ID(tab, dom, larb, port)	(((tab & 0xf) << 20) | ((dom & 0xf) << 16) |\
 						((larb & 0x3f) << 5) | (port & 0x1f))
 
+/* also provided by <dt-bindings/memory/mtk-smi-larb-port.h> (same encoding) */
+#ifndef MTK_M4U_ID
 #define MTK_M4U_DOM_ID(dom, larb, port)	MTK_M4U_PORT_ID(TAB_ID, dom, larb, port)
 #define MTK_M4U_ID(larb, port)		(((larb) << 5) | (port))
+#endif
 #define MTK_M4U_TO_LARB(id)		(((id) >> 5) & 0x3f)
 #define MTK_M4U_TO_PORT(id)		((id) & 0x1f)
 #define MTK_M4U_TO_DOM(id)		(((id) >> 16) & 0xf)

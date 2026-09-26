@@ -94,7 +94,7 @@ static int scp_ultra_pcm_dev_probe(struct platform_device *pdev)
 		goto err_platform;
 	}
 
-	set_ipi_recv_private((void *)scp_ultra);
+	ultra_set_ipi_recv_private((void *)scp_ultra);
 	set_scp_ultra_base((void *)scp_ultra);
 
 	return 0;

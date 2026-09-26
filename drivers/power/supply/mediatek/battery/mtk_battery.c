@@ -1606,8 +1606,8 @@ int force_get_tbat_internal(bool update)
 	static int pre_fg_current_state;
 	static int pre_fg_r_value;
 	static int pre_bat_temperature_val2;
-	static struct timespec pre_time;
-	struct timespec ctime, dtime;
+	static struct timespec64 pre_time;
+	struct timespec64 ctime, dtime;
 
 	gm.fixed_bat_tmp = 25;
 	if (is_battery_init_done() == false) {
@@ -1689,10 +1689,10 @@ int force_get_tbat_internal(bool update)
 			pre_fg_current_state = fg_current_state;
 			pre_fg_r_value = fg_r_value;
 			pre_bat_temperature_val2 = bat_temperature_val;
-			get_monotonic_boottime(&pre_time);
+			ktime_get_boottime_ts64(&pre_time);
 		} else {
-			get_monotonic_boottime(&ctime);
-			dtime = timespec_sub(ctime, pre_time);
+			ktime_get_boottime_ts64(&ctime);
+			dtime = timespec64_sub(ctime, pre_time);
 
 			if (((dtime.tv_sec <= 20) &&
 				(abs(pre_bat_temperature_val2 -
@@ -4643,7 +4643,7 @@ static int battery_resume(struct platform_device *dev)
 			gauge_enable_interrupt(FG_IAVG_L_NO, 1);
 	}
 	/* reset nafg monitor time to avoid suspend for too long case */
-	get_monotonic_boottime(&gm.last_nafg_update_time);
+	ktime_get_boottime_ts64(&gm.last_nafg_update_time);
 
 	fg_update_sw_iavg();
 

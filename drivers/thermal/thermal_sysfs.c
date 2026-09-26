@@ -716,7 +716,7 @@ thermal_cooling_device_available_show(struct device *dev,
 	int ret;
 
 	if (cdev->ops->get_available == NULL)
-		return ret;
+		return -EINVAL;
 
 	ret = cdev->ops->get_available(cdev, available_state);
 	if (ret)

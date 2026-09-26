@@ -214,7 +214,7 @@ struct dv2_algo_data {
 	u32 vbat_ircmp;
 	int vta_comp;
 	bool is_vbat_over_cv;
-	struct timespec stime;
+	struct timespec64 stime;
 	enum dv2_algo_state state;
 	enum dv2_thermal_level tbat_level;
 	enum dv2_thermal_level tta_level;
@@ -1262,7 +1262,7 @@ static inline void __dv2_init_algo_data(struct dv2_algo_info *info)
 	mutex_lock(&data->notify_lock);
 	data->notify = 0;
 	mutex_unlock(&data->notify_lock);
-	get_monotonic_boottime(&data->stime);
+	ktime_get_boottime_ts64(&data->stime);
 }
 
 static int __dv2_earily_restart(struct dv2_algo_info *info)
@@ -3208,14 +3208,14 @@ static bool __dv2_algo_check_charging_time(struct dv2_algo_info *info)
 {
 	struct dv2_algo_data *data = info->data;
 	struct dv2_algo_desc *desc = info->desc;
-	struct timespec etime, dtime;
+	struct timespec64 etime, dtime;
 	struct dv2_stop_info sinfo = {
 		.reset_ta = true,
 		.hardreset_ta = false,
 	};
 
-	get_monotonic_boottime(&etime);
-	dtime = timespec_sub(etime, data->stime);
+	ktime_get_boottime_ts64(&etime);
+	dtime = timespec64_sub(etime, data->stime);
 	if (dtime.tv_sec >= desc->chg_time_max) {
 		PCA_ERR("dv2 algo timeout(%d, %d)\n", (int)dtime.tv_sec,
 			desc->chg_time_max);

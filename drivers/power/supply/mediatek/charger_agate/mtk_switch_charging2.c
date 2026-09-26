@@ -26,6 +26,7 @@
 #include <linux/module.h>	/* For MODULE_ marcros  */
 #include <linux/fs.h>
 #include <linux/device.h>
+#include <linux/timekeeping.h>
 #include <linux/interrupt.h>
 #include <linux/spinlock.h>
 #include <linux/platform_device.h>
@@ -767,7 +768,7 @@ static int mtk_switch_charging_plug_in(struct charger_manager *info)
 	swchgalg->state = CHR_CC;
 	info->polling_interval = CHARGING_INTERVAL;
 	swchgalg->disable_charging = false;
-	get_monotonic_boottime(&swchgalg->charging_begin_time);
+	ktime_get_boottime_ts64(&swchgalg->charging_begin_time);
 
 	return 0;
 }
@@ -811,7 +812,7 @@ static int mtk_switch_charging_do_charging(struct charger_manager *info,
 	if (en) {
 		swchgalg->disable_charging = false;
 		swchgalg->state = CHR_CC;
-		get_monotonic_boottime(&swchgalg->charging_begin_time);
+		ktime_get_boottime_ts64(&swchgalg->charging_begin_time);
 		charger_manager_notifier(info, CHARGER_NOTIFY_NORMAL);
 	} else {
 		/* disable charging might change state, so call it first */
@@ -1169,10 +1170,10 @@ stop:
 static bool mtk_switch_check_charging_time(struct charger_manager *info)
 {
 	struct switch_charging_alg_data *swchgalg = info->algorithm_data;
-	struct timespec time_now;
+	struct timespec64 time_now;
 
 	if (info->enable_sw_safety_timer) {
-		get_monotonic_boottime(&time_now);
+		ktime_get_boottime_ts64(&time_now);
 		chr_debug("%s: begin: %ld, now: %ld\n", __func__,
 			swchgalg->charging_begin_time.tv_sec, time_now.tv_sec);
 
@@ -1211,7 +1212,7 @@ static int mtk_switch_chr_cc(struct charger_manager *info)
 {
 	bool chg_done = false;
 	struct switch_charging_alg_data *swchgalg = info->algorithm_data;
-	struct timespec time_now, charging_time;
+	struct timespec64 time_now, charging_time;
 	int tmp = battery_get_bat_temperature();
 	union power_supply_propval val = {0,};
 #ifdef CONFIG_BQ2597X_CHARGE_PUMP
@@ -1247,8 +1248,8 @@ static int mtk_switch_chr_cc(struct charger_manager *info)
 		}
 	}
 
-	get_monotonic_boottime(&time_now);
-	charging_time = timespec_sub(time_now, swchgalg->charging_begin_time);
+	ktime_get_boottime_ts64(&time_now);
+	charging_time = timespec64_sub(time_now, swchgalg->charging_begin_time);
 
 	swchgalg->total_charging_time = charging_time.tv_sec;
 
@@ -1465,7 +1466,7 @@ static int mtk_switch_chr_err(struct charger_manager *info)
 			(info->sw_jeita.sm != TEMP_ABOVE_T4)) {
 			info->sw_jeita.error_recovery_flag = true;
 			swchgalg->state = CHR_CC;
-			get_monotonic_boottime(&swchgalg->charging_begin_time);
+			ktime_get_boottime_ts64(&swchgalg->charging_begin_time);
 		}
 	}
 
@@ -1509,7 +1510,7 @@ static int mtk_switch_chr_full(struct charger_manager *info)
 		mtk_pe20_set_to_check_chr_type(info, true);
 		mtk_pe_set_to_check_chr_type(info, true);
 		info->enable_dynamic_cv = true;
-		get_monotonic_boottime(&swchgalg->charging_begin_time);
+		ktime_get_boottime_ts64(&swchgalg->charging_begin_time);
 		chr_err("battery recharging!\n");
 		info->polling_interval = CHARGING_INTERVAL;
 	}

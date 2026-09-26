@@ -8,7 +8,7 @@
 #include "cmdq_helper_ext.h"
 
 #ifdef CMDQ_CONFIG_SMI
-#include "smi_public.h"
+#include <soc/mediatek/smi.h>
 #endif
 
 /* device tree */

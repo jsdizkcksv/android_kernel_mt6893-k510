@@ -139,7 +139,7 @@ enum touch_state {
 struct touch_event {
 	u32 slot;
 	enum touch_state state;
-	struct timespec touch_time;
+	struct timespec64 touch_time;
 };
 
 struct last_touch_event {
