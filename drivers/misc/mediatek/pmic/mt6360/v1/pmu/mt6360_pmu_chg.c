@@ -462,7 +462,8 @@ static int DPDM_Switch_TO_CHG_upstream(struct mt6360_pmu_chg_info *mpci,
 	if (ret)
 		dev_info(mpci->dev, "phy_set_mode_ext fail\n");
 
-	phy_put(phy);
+	/* AGATE(5.10): phy_put() takes the device first now. */
+	phy_put(mpci->dev, phy);
 
 	return 0;
 }

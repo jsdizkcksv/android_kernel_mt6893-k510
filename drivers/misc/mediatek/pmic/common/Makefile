@@ -26,7 +26,7 @@ endif
 # driver leaves 17 symbols undefined at link time; the 5.10-side consumers
 # (clkbuf, lpm, accdet, battery) are satisfied instead by week_fun_debug1.o's
 # __weak definitions.  Re-enable together with the mt6359p/v1 port.
-#obj-$(CONFIG_MTK_PMIC_COMMON) += upmu.o upmu_regulator.o upmu_debugfs.o upmu_initial_setting.o
+obj-$(CONFIG_MTK_PMIC_COMMON) += upmu.o upmu_regulator.o upmu_debugfs.o upmu_initial_setting.o
 # AGATE(5.10): the LBAT service is NOT built from here.  The 5.10 tree already
 # has MTK's own copy at drivers/misc/mediatek/power_throttling/pmic_lbat_service.c
 # (wired by CONFIG_MTK_POWER_THROTTLING_COMMON), and the 4.19 twin built here

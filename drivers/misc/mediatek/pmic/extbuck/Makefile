@@ -30,4 +30,4 @@ obj-$(CONFIG_EXTBUCK_MT6311) += mt6311-i2c.o mt6311-regulator.o mt6311_api.o
 # AGATE(5.10): DEFERRED.  extbuck.c calls is_mt6315_exist(), which the 4.19
 # PMIC driver (pmic/mt6359p/v1) defines.  mt6691-regulator.o below is
 # self-contained and stays built.
-#obj-$(CONFIG_MTK_EXTBUCK) += extbuck.o
+obj-$(CONFIG_MTK_EXTBUCK) += extbuck.o

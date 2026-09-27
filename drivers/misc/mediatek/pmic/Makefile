@@ -8,13 +8,14 @@ obj-$(CONFIG_MTK_EXTBUCK) += extbuck/
 obj-$(CONFIG_MTK_PMIC_COMMON) += common/
 obj-$(CONFIG_MTK_PMIC_CHIP_MT6357) += mt6357/
 obj-$(CONFIG_MTK_PMIC_CHIP_MT6358) += mt6358/
-# AGATE(5.10): DEFERRED.  mt6359p/v1/ in this tree holds only a Makefile --
+# AGATE(5.10): RE-ENABLED -- the 4.19 mt6359p/v1 sources were ported in
+# (zZY1_pmiccopy.py).  Original note was:
 # every .c it lists (pmic_common.c, pmic_api.c, pmic_irq.c, pmic_efuse.c,
 # pmic_auxadc.c, regulator_codegen.c, ...) belongs to the 4.19 import that was
 # dropped.  kbuild would hard-fail on the missing Makefile/sources, so the
 # subtree stays off until it is ported.  Meanwhile pmic_enable_interrupt(),
 # pmic_Read_Efuse_HPOffset() and friends come from week_fun_debug1.o (weak).
-#obj-$(CONFIG_MTK_PMIC_CHIP_MT6359P) += mt6359p/
+obj-$(CONFIG_MTK_PMIC_CHIP_MT6359P) += mt6359p/
 obj-$(CONFIG_MFD_MT6370_PMU)    += mt6370/
 
 ifeq ($(CONFIG_MTK_GAUGE_VERSION),30)
@@ -42,13 +43,14 @@ obj-$(CONFIG_MTK_EXTBUCK) += extbuck/
 obj-$(CONFIG_MTK_PMIC_COMMON) += common/
 obj-$(CONFIG_MTK_PMIC_CHIP_MT6357) += mt6357/
 obj-$(CONFIG_MTK_PMIC_CHIP_MT6358) += mt6358/
-# AGATE(5.10): DEFERRED.  mt6359p/v1/ in this tree holds only a Makefile --
+# AGATE(5.10): RE-ENABLED -- the 4.19 mt6359p/v1 sources were ported in
+# (zZY1_pmiccopy.py).  Original note was:
 # every .c it lists (pmic_common.c, pmic_api.c, pmic_irq.c, pmic_efuse.c,
 # pmic_auxadc.c, regulator_codegen.c, ...) belongs to the 4.19 import that was
 # dropped.  kbuild would hard-fail on the missing Makefile/sources, so the
 # subtree stays off until it is ported.  Meanwhile pmic_enable_interrupt(),
 # pmic_Read_Efuse_HPOffset() and friends come from week_fun_debug1.o (weak).
-#obj-$(CONFIG_MTK_PMIC_CHIP_MT6359P) += mt6359p/
+obj-$(CONFIG_MTK_PMIC_CHIP_MT6359P) += mt6359p/
 obj-$(CONFIG_MFD_MT6370_PMU)    += mt6370/
 
 ifeq ($(CONFIG_MTK_GAUGE_VERSION),30)
@@ -76,13 +78,14 @@ obj-$(CONFIG_MTK_EXTBUCK) += extbuck/
 obj-$(CONFIG_MTK_PMIC_COMMON) += common/
 obj-$(CONFIG_MTK_PMIC_CHIP_MT6357) += mt6357/
 obj-$(CONFIG_MTK_PMIC_CHIP_MT6358) += mt6358/
-# AGATE(5.10): DEFERRED.  mt6359p/v1/ in this tree holds only a Makefile --
+# AGATE(5.10): RE-ENABLED -- the 4.19 mt6359p/v1 sources were ported in
+# (zZY1_pmiccopy.py).  Original note was:
 # every .c it lists (pmic_common.c, pmic_api.c, pmic_irq.c, pmic_efuse.c,
 # pmic_auxadc.c, regulator_codegen.c, ...) belongs to the 4.19 import that was
 # dropped.  kbuild would hard-fail on the missing Makefile/sources, so the
 # subtree stays off until it is ported.  Meanwhile pmic_enable_interrupt(),
 # pmic_Read_Efuse_HPOffset() and friends come from week_fun_debug1.o (weak).
-#obj-$(CONFIG_MTK_PMIC_CHIP_MT6359P) += mt6359p/
+obj-$(CONFIG_MTK_PMIC_CHIP_MT6359P) += mt6359p/
 obj-$(CONFIG_MFD_MT6370_PMU)    += mt6370/
 
 ifeq ($(CONFIG_MTK_GAUGE_VERSION),30)
@@ -102,13 +105,14 @@ obj-$(CONFIG_MTK_EXTBUCK) += extbuck/
 obj-$(CONFIG_MTK_PMIC_COMMON) += common/
 obj-$(CONFIG_MTK_PMIC_CHIP_MT6357) += mt6357/
 obj-$(CONFIG_MTK_PMIC_CHIP_MT6358) += mt6358/
-# AGATE(5.10): DEFERRED.  mt6359p/v1/ in this tree holds only a Makefile --
+# AGATE(5.10): RE-ENABLED -- the 4.19 mt6359p/v1 sources were ported in
+# (zZY1_pmiccopy.py).  Original note was:
 # every .c it lists (pmic_common.c, pmic_api.c, pmic_irq.c, pmic_efuse.c,
 # pmic_auxadc.c, regulator_codegen.c, ...) belongs to the 4.19 import that was
 # dropped.  kbuild would hard-fail on the missing Makefile/sources, so the
 # subtree stays off until it is ported.  Meanwhile pmic_enable_interrupt(),
 # pmic_Read_Efuse_HPOffset() and friends come from week_fun_debug1.o (weak).
-#obj-$(CONFIG_MTK_PMIC_CHIP_MT6359P) += mt6359p/
+obj-$(CONFIG_MTK_PMIC_CHIP_MT6359P) += mt6359p/
 
 ifeq ($(CONFIG_MTK_GAUGE_VERSION),30)
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/pmic/include
@@ -127,17 +131,19 @@ obj-$(CONFIG_MTK_EXTBUCK) += extbuck/
 obj-$(CONFIG_MTK_PMIC_COMMON) += common/
 obj-$(CONFIG_MTK_PMIC_CHIP_MT6357) += mt6357/
 obj-$(CONFIG_MTK_PMIC_CHIP_MT6358) += mt6358/
-# AGATE(5.10): DEFERRED.  mt6359p/v1/ in this tree holds only a Makefile --
+# AGATE(5.10): RE-ENABLED -- the 4.19 mt6359p/v1 sources were ported in
+# (zZY1_pmiccopy.py).  Original note was:
 # every .c it lists (pmic_common.c, pmic_api.c, pmic_irq.c, pmic_efuse.c,
 # pmic_auxadc.c, regulator_codegen.c, ...) belongs to the 4.19 import that was
 # dropped.  kbuild would hard-fail on the missing Makefile/sources, so the
 # subtree stays off until it is ported.  Meanwhile pmic_enable_interrupt(),
 # pmic_Read_Efuse_HPOffset() and friends come from week_fun_debug1.o (weak).
-#obj-$(CONFIG_MTK_PMIC_CHIP_MT6359P) += mt6359p/
-# AGATE(5.10): DEFERRED.  mt6360/ has no Makefile of its own and v1/pmu is a
+obj-$(CONFIG_MTK_PMIC_CHIP_MT6359P) += mt6359p/
+# AGATE(5.10): RE-ENABLED -- mt6360/Makefile + v1/** and the missing v1/pmu
+# sources were ported in (zZY1_pmiccopy.py).  Original note was:
 # partial import (its Makefile lists 7 objects, only mt6360_pmu_chg.c exists).
 # Off until the MT6360 PMU/PMIC/LDO sources are ported from 4.19.
-#obj-$(CONFIG_MFD_MT6360_PMU)    += mt6360/
+obj-$(CONFIG_MFD_MT6360_PMU)    += mt6360/
 
 ifeq ($(CONFIG_MTK_GAUGE_VERSION),30)
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/pmic/include
@@ -156,17 +162,19 @@ obj-$(CONFIG_MTK_EXTBUCK) += extbuck/
 obj-$(CONFIG_MTK_PMIC_COMMON) += common/
 obj-$(CONFIG_MTK_PMIC_CHIP_MT6357) += mt6357/
 obj-$(CONFIG_MTK_PMIC_CHIP_MT6358) += mt6358/
-# AGATE(5.10): DEFERRED.  mt6359p/v1/ in this tree holds only a Makefile --
+# AGATE(5.10): RE-ENABLED -- the 4.19 mt6359p/v1 sources were ported in
+# (zZY1_pmiccopy.py).  Original note was:
 # every .c it lists (pmic_common.c, pmic_api.c, pmic_irq.c, pmic_efuse.c,
 # pmic_auxadc.c, regulator_codegen.c, ...) belongs to the 4.19 import that was
 # dropped.  kbuild would hard-fail on the missing Makefile/sources, so the
 # subtree stays off until it is ported.  Meanwhile pmic_enable_interrupt(),
 # pmic_Read_Efuse_HPOffset() and friends come from week_fun_debug1.o (weak).
-#obj-$(CONFIG_MTK_PMIC_CHIP_MT6359P) += mt6359p/
-# AGATE(5.10): DEFERRED.  mt6360/ has no Makefile of its own and v1/pmu is a
+obj-$(CONFIG_MTK_PMIC_CHIP_MT6359P) += mt6359p/
+# AGATE(5.10): RE-ENABLED -- mt6360/Makefile + v1/** and the missing v1/pmu
+# sources were ported in (zZY1_pmiccopy.py).  Original note was:
 # partial import (its Makefile lists 7 objects, only mt6360_pmu_chg.c exists).
 # Off until the MT6360 PMU/PMIC/LDO sources are ported from 4.19.
-#obj-$(CONFIG_MFD_MT6360_PMU)    += mt6360/
+obj-$(CONFIG_MFD_MT6360_PMU)    += mt6360/
 
 ifeq ($(CONFIG_MTK_GAUGE_VERSION),30)
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/pmic/include
@@ -185,17 +193,19 @@ obj-$(CONFIG_MTK_EXTBUCK) += extbuck/
 obj-$(CONFIG_MTK_PMIC_COMMON) += common/
 obj-$(CONFIG_MTK_PMIC_CHIP_MT6357) += mt6357/
 obj-$(CONFIG_MTK_PMIC_CHIP_MT6358) += mt6358/
-# AGATE(5.10): DEFERRED.  mt6359p/v1/ in this tree holds only a Makefile --
+# AGATE(5.10): RE-ENABLED -- the 4.19 mt6359p/v1 sources were ported in
+# (zZY1_pmiccopy.py).  Original note was:
 # every .c it lists (pmic_common.c, pmic_api.c, pmic_irq.c, pmic_efuse.c,
 # pmic_auxadc.c, regulator_codegen.c, ...) belongs to the 4.19 import that was
 # dropped.  kbuild would hard-fail on the missing Makefile/sources, so the
 # subtree stays off until it is ported.  Meanwhile pmic_enable_interrupt(),
 # pmic_Read_Efuse_HPOffset() and friends come from week_fun_debug1.o (weak).
-#obj-$(CONFIG_MTK_PMIC_CHIP_MT6359P) += mt6359p/
-# AGATE(5.10): DEFERRED.  mt6360/ has no Makefile of its own and v1/pmu is a
+obj-$(CONFIG_MTK_PMIC_CHIP_MT6359P) += mt6359p/
+# AGATE(5.10): RE-ENABLED -- mt6360/Makefile + v1/** and the missing v1/pmu
+# sources were ported in (zZY1_pmiccopy.py).  Original note was:
 # partial import (its Makefile lists 7 objects, only mt6360_pmu_chg.c exists).
 # Off until the MT6360 PMU/PMIC/LDO sources are ported from 4.19.
-#obj-$(CONFIG_MFD_MT6360_PMU)    += mt6360/
+obj-$(CONFIG_MFD_MT6360_PMU)    += mt6360/
 
 ifeq ($(CONFIG_MTK_GAUGE_VERSION),30)
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/pmic/include
@@ -214,17 +224,19 @@ obj-$(CONFIG_MTK_EXTBUCK) += extbuck/
 obj-$(CONFIG_MTK_PMIC_COMMON) += common/
 obj-$(CONFIG_MTK_PMIC_CHIP_MT6357) += mt6357/
 obj-$(CONFIG_MTK_PMIC_CHIP_MT6358) += mt6358/
-# AGATE(5.10): DEFERRED.  mt6359p/v1/ in this tree holds only a Makefile --
+# AGATE(5.10): RE-ENABLED -- the 4.19 mt6359p/v1 sources were ported in
+# (zZY1_pmiccopy.py).  Original note was:
 # every .c it lists (pmic_common.c, pmic_api.c, pmic_irq.c, pmic_efuse.c,
 # pmic_auxadc.c, regulator_codegen.c, ...) belongs to the 4.19 import that was
 # dropped.  kbuild would hard-fail on the missing Makefile/sources, so the
 # subtree stays off until it is ported.  Meanwhile pmic_enable_interrupt(),
 # pmic_Read_Efuse_HPOffset() and friends come from week_fun_debug1.o (weak).
-#obj-$(CONFIG_MTK_PMIC_CHIP_MT6359P) += mt6359p/
-# AGATE(5.10): DEFERRED.  mt6360/ has no Makefile of its own and v1/pmu is a
+obj-$(CONFIG_MTK_PMIC_CHIP_MT6359P) += mt6359p/
+# AGATE(5.10): RE-ENABLED -- mt6360/Makefile + v1/** and the missing v1/pmu
+# sources were ported in (zZY1_pmiccopy.py).  Original note was:
 # partial import (its Makefile lists 7 objects, only mt6360_pmu_chg.c exists).
 # Off until the MT6360 PMU/PMIC/LDO sources are ported from 4.19.
-#obj-$(CONFIG_MFD_MT6360_PMU)    += mt6360/
+obj-$(CONFIG_MFD_MT6360_PMU)    += mt6360/
 
 ifeq ($(CONFIG_MTK_GAUGE_VERSION),30)
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/pmic/include
@@ -243,17 +255,19 @@ obj-$(CONFIG_MTK_EXTBUCK) += extbuck/
 obj-$(CONFIG_MTK_PMIC_COMMON) += common/
 obj-$(CONFIG_MTK_PMIC_CHIP_MT6357) += mt6357/
 obj-$(CONFIG_MTK_PMIC_CHIP_MT6358) += mt6358/
-# AGATE(5.10): DEFERRED.  mt6359p/v1/ in this tree holds only a Makefile --
+# AGATE(5.10): RE-ENABLED -- the 4.19 mt6359p/v1 sources were ported in
+# (zZY1_pmiccopy.py).  Original note was:
 # every .c it lists (pmic_common.c, pmic_api.c, pmic_irq.c, pmic_efuse.c,
 # pmic_auxadc.c, regulator_codegen.c, ...) belongs to the 4.19 import that was
 # dropped.  kbuild would hard-fail on the missing Makefile/sources, so the
 # subtree stays off until it is ported.  Meanwhile pmic_enable_interrupt(),
 # pmic_Read_Efuse_HPOffset() and friends come from week_fun_debug1.o (weak).
-#obj-$(CONFIG_MTK_PMIC_CHIP_MT6359P) += mt6359p/
-# AGATE(5.10): DEFERRED.  mt6360/ has no Makefile of its own and v1/pmu is a
+obj-$(CONFIG_MTK_PMIC_CHIP_MT6359P) += mt6359p/
+# AGATE(5.10): RE-ENABLED -- mt6360/Makefile + v1/** and the missing v1/pmu
+# sources were ported in (zZY1_pmiccopy.py).  Original note was:
 # partial import (its Makefile lists 7 objects, only mt6360_pmu_chg.c exists).
 # Off until the MT6360 PMU/PMIC/LDO sources are ported from 4.19.
-#obj-$(CONFIG_MFD_MT6360_PMU)    += mt6360/
+obj-$(CONFIG_MFD_MT6360_PMU)    += mt6360/
 
 ifeq ($(CONFIG_MTK_GAUGE_VERSION),30)
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/pmic/include
@@ -267,17 +281,19 @@ subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/pmic/include
 subdir-ccflags-$(CONFIG_MTK_PMIC_CHIP_MT6359P)+= -I$(srctree)/drivers/misc/mediatek/pmic/include/mt6359p
 obj-$(CONFIG_MTK_EXTBUCK) += extbuck/
 obj-$(CONFIG_MTK_PMIC_COMMON) += common/
-# AGATE(5.10): DEFERRED.  mt6359p/v1/ in this tree holds only a Makefile --
+# AGATE(5.10): RE-ENABLED -- the 4.19 mt6359p/v1 sources were ported in
+# (zZY1_pmiccopy.py).  Original note was:
 # every .c it lists (pmic_common.c, pmic_api.c, pmic_irq.c, pmic_efuse.c,
 # pmic_auxadc.c, regulator_codegen.c, ...) belongs to the 4.19 import that was
 # dropped.  kbuild would hard-fail on the missing Makefile/sources, so the
 # subtree stays off until it is ported.  Meanwhile pmic_enable_interrupt(),
 # pmic_Read_Efuse_HPOffset() and friends come from week_fun_debug1.o (weak).
-#obj-$(CONFIG_MTK_PMIC_CHIP_MT6359P) += mt6359p/
-# AGATE(5.10): DEFERRED.  mt6360/ has no Makefile of its own and v1/pmu is a
+obj-$(CONFIG_MTK_PMIC_CHIP_MT6359P) += mt6359p/
+# AGATE(5.10): RE-ENABLED -- mt6360/Makefile + v1/** and the missing v1/pmu
+# sources were ported in (zZY1_pmiccopy.py).  Original note was:
 # partial import (its Makefile lists 7 objects, only mt6360_pmu_chg.c exists).
 # Off until the MT6360 PMU/PMIC/LDO sources are ported from 4.19.
-#obj-$(CONFIG_MFD_MT6360_PMU)    += mt6360/
+obj-$(CONFIG_MFD_MT6360_PMU)    += mt6360/
 
 ifeq ($(CONFIG_MTK_GAUGE_VERSION),30)
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/pmic/include
@@ -312,17 +328,19 @@ obj-$(CONFIG_MTK_PMIC_COMMON) += common/
 obj-$(CONFIG_MTK_PMIC_CHIP_MT6357) += mt6357/
 obj-$(CONFIG_MTK_PMIC_CHIP_MT6358) += mt6358/
 obj-$(CONFIG_MTK_PMIC_CHIP_MT6359) += mt6359/
-# AGATE(5.10): DEFERRED.  mt6359p/v1/ in this tree holds only a Makefile --
+# AGATE(5.10): RE-ENABLED -- the 4.19 mt6359p/v1 sources were ported in
+# (zZY1_pmiccopy.py).  Original note was:
 # every .c it lists (pmic_common.c, pmic_api.c, pmic_irq.c, pmic_efuse.c,
 # pmic_auxadc.c, regulator_codegen.c, ...) belongs to the 4.19 import that was
 # dropped.  kbuild would hard-fail on the missing Makefile/sources, so the
 # subtree stays off until it is ported.  Meanwhile pmic_enable_interrupt(),
 # pmic_Read_Efuse_HPOffset() and friends come from week_fun_debug1.o (weak).
-#obj-$(CONFIG_MTK_PMIC_CHIP_MT6359P) += mt6359p/
-# AGATE(5.10): DEFERRED.  mt6360/ has no Makefile of its own and v1/pmu is a
+obj-$(CONFIG_MTK_PMIC_CHIP_MT6359P) += mt6359p/
+# AGATE(5.10): RE-ENABLED -- mt6360/Makefile + v1/** and the missing v1/pmu
+# sources were ported in (zZY1_pmiccopy.py).  Original note was:
 # partial import (its Makefile lists 7 objects, only mt6360_pmu_chg.c exists).
 # Off until the MT6360 PMU/PMIC/LDO sources are ported from 4.19.
-#obj-$(CONFIG_MFD_MT6360_PMU)    += mt6360/
+obj-$(CONFIG_MFD_MT6360_PMU)    += mt6360/
 
 ifeq ($(CONFIG_MTK_GAUGE_VERSION),30)
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/pmic/include
@@ -333,9 +351,10 @@ endif
 
 else
 obj-$(CONFIG_MFD_MT6370_PMU)    += mt6370/
-# AGATE(5.10): DEFERRED.  mt6360/ has no Makefile of its own and v1/pmu is a
+# AGATE(5.10): RE-ENABLED -- mt6360/Makefile + v1/** and the missing v1/pmu
+# sources were ported in (zZY1_pmiccopy.py).  Original note was:
 # partial import (its Makefile lists 7 objects, only mt6360_pmu_chg.c exists).
 # Off until the MT6360 PMU/PMIC/LDO sources are ported from 4.19.
-#obj-$(CONFIG_MFD_MT6360_PMU)    += mt6360/
+obj-$(CONFIG_MFD_MT6360_PMU)    += mt6360/
 obj-$(CONFIG_MFD_MT6397)    += mt6397/
 endif

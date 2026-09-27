@@ -712,6 +712,38 @@ static void mt6359p_lbat_init_setting(void)
 	__regmap_update_bits(regmap, &lbat_regs->det_prd, val);
 }
 
+/*
+ * AGATE(5.10): entry points that the ported 4.19 PMIC/DLPT code calls
+ * (drivers/misc/mediatek/pmic/mt6359p/v1/pmic_throttling_dlpt.c and
+ * pmic/common/upmu_debugfs.c).  In 4.19 they were provided by
+ * pmic/common/upmu_lbat_service_v2.c together with the lbat_user_* API; in this
+ * tree the API belongs to this file, so the wrappers live here.
+ *
+ * The service is initialised by its own platform driver through the DT node
+ * "mediatek,mt6359p-lbat_service" (arch/arm64/boot/dts/mediatek/mt6359p.dtsi),
+ * which is why lbat_service_init() must not run the setup a second time.
+ */
+void lbat_suspend(void)
+{
+	lbat_irq_disable();
+}
+
+void lbat_resume(void)
+{
+	lbat_irq_enable();
+}
+
+int lbat_service_init(struct platform_device *pdev)
+{
+	return 0;
+}
+
+int lbat_debug_init(struct dentry *debug_dir)
+{
+	/* debug-only helper; this service exposes no debugfs nodes of its own. */
+	return 0;
+}
+
 static int pmic_lbat_service_probe(struct platform_device *pdev)
 {
 	int ret, irq;

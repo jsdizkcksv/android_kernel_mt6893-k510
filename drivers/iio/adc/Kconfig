@@ -715,6 +715,8 @@ config MEDIATEK_MT6338_AUXADC
 	  This driver can also be built as a module. If so, the module will be
 	  called mt6338-auxadc.
 
+# AGATE(5.10): the 4.19 v1 AUXADC driver (config MT635X_AUXADC) was withdrawn;
+# this devicetree binds MEDIATEK_MT635X_AUXADC instead.
 config MEDIATEK_MT635X_AUXADC
 	tristate "MediaTek MT635X PMIC AUXADC Support"
 	depends on MFD_MT6397

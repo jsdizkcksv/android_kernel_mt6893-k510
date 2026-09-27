@@ -89,6 +89,10 @@ obj-$(CONFIG_REGULATOR_MP886X) += mp886x.o
 obj-$(CONFIG_REGULATOR_MPQ7920) += mpq7920.o
 obj-$(CONFIG_REGULATOR_MT6311) += mt6311-regulator.o
 obj-$(CONFIG_REGULATOR_MT6315) += mt6315-regulator.o
+# AGATE(5.10): 4.19 also builds mt6315-misc.o here; it provides
+# is_mt6315_exist() and mt6315_vmd1_pmic_setting_on(), which extbuck.c and
+# pmic/mt6359p/v1/pmic.c call.  The file was never imported into 5.10.
+obj-$(CONFIG_REGULATOR_MT6315) += mt6315-misc.o
 obj-$(CONFIG_REGULATOR_MT6315) += mtk-extbuck-debug.o
 obj-$(CONFIG_REGULATOR_MT6323)	+= mt6323-regulator.o
 obj-$(CONFIG_REGULATOR_MT6358)	+= mt6358-regulator.o

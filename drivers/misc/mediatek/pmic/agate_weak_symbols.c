@@ -10,6 +10,7 @@
  * mt6359p/v1 port lands, the real implementations silently take over.
  */
 #include <linux/kernel.h>
+#include <linux/device.h>
 #include <linux/types.h>
 
 #include "include/pmic_auxadc.h"
@@ -53,4 +54,72 @@ int __attribute__((weak)) aputop_dbg_init(struct apusys_core_info *info)
 
 void __attribute__((weak)) aputop_dbg_exit(void)
 {
+}
+
+/*
+ * pmic/mt6359p/v1/pmic_irq.c does
+ *     name = mt6358_irq_get_name(pmic_dev->parent, intNo);
+ *     if (name == NULL) { ...; return; }        <- silently skips enabling the IRQ
+ * so returning NULL here would disable PMIC interrupts.  The real function
+ * (4.19 drivers/mfd/mt6358-core.c) needs the vendor MFD driver's IRQ-name table,
+ * which this tree does not carry; a valid, unique name is all request_irq()
+ * needs.  Weak, so the vendor implementation wins if it is ever ported.
+ */
+const char *mt6358_irq_get_name(struct device *dev, unsigned int hwirq)
+	__attribute__((weak));
+
+const char *mt6358_irq_get_name(struct device *dev, unsigned int hwirq)
+{
+	static char name[24];
+
+	snprintf(name, sizeof(name), "pmic_irq_%u", hwirq);
+	return name;
+}
+
+/*
+ * AUXADC internal API.
+ *
+ * This devicetree binds 5.10's drivers/iio/adc/mt635x-auxadc.c
+ * ("mediatek,mt6359p-auxadc"), and the ported pmic_auxadc.c's *consumer* path
+ * (pmic_get_auxadc_value(), used by battery/accdet) goes through the generic IIO
+ * channel API, which that driver implements.  The four vendor-internal entry
+ * points below changed shape in 5.10 (struct mt635x_auxadc_device *, private to
+ * the driver file, no accessor), so they are not bridged yet: the ported code
+ * uses them only for a debug dump (wk_auxadc_dbg_dump) and to install the
+ * vendor's own convert/cali callbacks, which 5.10's driver already provides
+ * internally.  Weak, so a proper bridge can replace them later.
+ */
+int auxadc_priv_read_channel(struct device *dev, int channel)
+	__attribute__((weak));
+void auxadc_set_convert_fn(unsigned int channel,
+			   void (*convert_fn)(unsigned char convert))
+	__attribute__((weak));
+void auxadc_set_cali_fn(unsigned int channel,
+			int (*cali_fn)(int val, int precision_factor))
+	__attribute__((weak));
+unsigned char *auxadc_get_r_ratio(int channel) __attribute__((weak));
+
+#include <linux/iio/adc/mt635x-auxadc-internal.h>
+
+int auxadc_priv_read_channel(struct device *dev, int channel)
+{
+	return 0;
+}
+
+void auxadc_set_convert_fn(unsigned int channel,
+			   void (*convert_fn)(unsigned char convert))
+{
+}
+
+void auxadc_set_cali_fn(unsigned int channel,
+			int (*cali_fn)(int val, int precision_factor))
+{
+}
+
+unsigned char *auxadc_get_r_ratio(int channel)
+{
+	/* 1:1, i.e. "no scaling" -- never NULL, so callers cannot fault. */
+	static unsigned char r_ratio[2] = {1, 1};
+
+	return r_ratio;
 }
