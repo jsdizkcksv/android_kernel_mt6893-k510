@@ -10,8 +10,6 @@ config NFC_ST21NFC
 	tristate "STMicroelectronics NFC driver solution - NFC Controller Driver"
 	depends on I2C && NFC_CHIP_SUPPORT
 	default m
-	tristate "NFC driver solution - NFC Controller Driver"
-	depends on I2C
 	help
 	  STMicroelectronics ST21NFC Near Field Communication controller
 	  support. ST21NFC is standalone NFC and ST54 is combined with secure
@@ -33,8 +31,6 @@ config NFC_ST54_SPI
 config NFC_DEBUG
 	bool "STMicroelectronics NFC driver solution - NFC Driver Debug"
 	depends on NFC_CHIP_SUPPORT
-config MTK_NFC_CLKBUF_ENABLE
-	bool "Enable clock buffer for NFC"
 	help
 	  STMicroelectronics Near Field Communication driver debug support.
 	  This option is for debug only, if configures to be y, it the nfc

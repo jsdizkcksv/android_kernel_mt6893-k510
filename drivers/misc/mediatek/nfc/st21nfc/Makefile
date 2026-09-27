@@ -4,8 +4,4 @@
 
 ccflags-$(CONFIG_NFC_ST21NFC) += -I$(srctree)/drivers/misc/mediatek/include/mt-plat
 obj-$(CONFIG_NFC_ST21NFC) +=st21nfc.o
-ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat
-# some older platforms may need ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/include
-
-obj-$(CONFIG_NFC_CHIP_SUPPORT) +=st21nfc.o
 ccflags-$(CONFIG_NFC_DEBUG) := -DDEBUG
