@@ -37,7 +37,12 @@ endif
 $(info "=----------------1---------------------------")
 subdir-ccflags-$(CONFIG_MICROTRUST_DEBUG) += -DDEBUG
 
-obj-m += isee.o
+# AGATE(5.10): was `obj-m += isee.o` bundling every source into one
+# module.  This kernel is built-in-only, so the driver is wired per
+# subdirectory below (same layout as the 4.19 tree) and no isee.ko is
+# produced.  Without this, none of the objects reach 400/built-in.a
+# and TEEC_* stays undefined at vmlink.
+#obj-m += isee.o
 isee-y :=              tee/tee_core.o \
                        tee/capi_proxy.o \
                        tee/tee_client_api.o \
@@ -75,10 +80,12 @@ isee-y +=              teei_fp/fp_func.o
 #isee-y +=              ut_tester/ut_tester.o
 
 $(info "=----------------2---------------------------")
-#obj-$(CONFIG_MICROTRUST_TZ_DRIVER) += tz_driver/
-#obj-$(CONFIG_MICROTRUST_VFS_DRIVER) += tz_vfs/
-#obj-$(CONFIG_MICROTRUST_FP_DRIVER) += teei_fp/
-#obj-$(CONFIG_MICROTRUST_KEYMASTER_DRIVER) += ut_keymaster/
-#obj-y += tz_dcih/
-#obj-$(CONFIG_MICROTRUST_TEST_DRIVERS) += tests/
-#obj-$(CONFIG_MICROTRUST_UNITTEST_SUPPORT) += ut_tester/
+# AGATE(5.10): restored from the 4.19 tree -- these were commented out.
+obj-y += tee/
+obj-$(CONFIG_MICROTRUST_TZ_DRIVER) += tz_driver/
+obj-$(CONFIG_MICROTRUST_VFS_DRIVER) += tz_vfs/
+obj-$(CONFIG_MICROTRUST_FP_DRIVER) += teei_fp/
+obj-$(CONFIG_MICROTRUST_KEYMASTER_DRIVER) += ut_keymaster/
+obj-y += tz_dcih/
+obj-$(CONFIG_MICROTRUST_TEST_DRIVERS) += tests/
+obj-$(CONFIG_MICROTRUST_UNITTEST_SUPPORT) += ut_tester/

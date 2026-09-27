@@ -12,7 +12,14 @@
  *  MTK_THERMAL_WRAPPER_BYPASS = 1 (use original Linux Thermal API)
  *  MTK_THERMAL_WRAPPER_BYPASS = 0 (use MTK Thermal API Monitor)
  */
-#define MTK_THERMAL_WRAPPER_BYPASS 0
+/* AGATE(5.10): flipped to 1.  The 5.10 thermal/ tree was imported as a
+ * skeleton (platform src/ dirs and mt-plat thermal headers were never
+ * brought over), so mtk_thermal_cooling_device_register_wrapper does not
+ * exist yet.  mi_disp (mi_cooler_brightness_clone.c) is the only consumer,
+ * and this switch makes it use the mainline thermal_cooling_device_* API
+ * that this kernel already provides.  Restore to 0 once the full MTK
+ * thermal stack is ported. */
+#define MTK_THERMAL_WRAPPER_BYPASS 1
 
 #if MTK_THERMAL_WRAPPER_BYPASS
 /* Original LTF API */

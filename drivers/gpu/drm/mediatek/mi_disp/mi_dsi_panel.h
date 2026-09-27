@@ -39,7 +39,7 @@
 #include <linux/platform_device.h>
 #include <video/mipi_display.h>
 #include <video/videomode.h>
-#include <linux/soc/mediatek/mtk-cmdq.h>
+#include <linux/soc/mediatek/mtk-cmdq-ext.h>
 #include <linux/completion.h>
 #if defined(CONFIG_MACH_MT6873)
 #include <linux/ratelimit.h>

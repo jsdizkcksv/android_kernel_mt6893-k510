@@ -153,4 +153,22 @@ enum mt6358_irq_numbers {
 	.top_offset = MT6358_##sp##_TOP,	\
 }
 
+/* AGATE(5.10): vendor part of the 4.19 header, merged in because
+ * drivers/misc/mediatek/pmic/common/upmu.c dereferences
+ * struct mt6358_chip (the mainline header only declares the IRQ
+ * enum).  drivers/mfd/mt6358-irq.c keeps compiling unchanged. */
+struct mt6358_chip {
+	struct device *dev;
+	struct regmap *regmap;
+	int irq;
+	struct irq_domain *irq_domain;
+	struct mutex irqlock;
+	unsigned int num_sps;
+	unsigned int num_pmic_irqs;
+	unsigned short top_int_status_reg;
+};
+
+extern unsigned int mt6358_irq_get_virq(struct device *dev, unsigned int hwirq);
+extern const char *mt6358_irq_get_name(struct device *dev, unsigned int hwirq);
+
 #endif /* __MFD_MT6358_CORE_H__ */

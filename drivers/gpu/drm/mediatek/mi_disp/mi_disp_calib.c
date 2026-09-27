@@ -325,9 +325,15 @@ int mi_read_initcode(void)
 		if (ch_check(ch[1])) {
 			continue;
 		}
-		if (i < DATA_NUM)
-			kstrtou8(ch, 16, &init_data.data[i]);
-		else{
+		/* AGATE(5.10): check the return -- clang 20 rejects the ignored
+		 * result of kstrtou8() with -Werror,-Wunused-result. */
+		if (i < DATA_NUM) {
+			rc = kstrtou8(ch, 16, &init_data.data[i]);
+			if (rc) {
+				pr_err("panel_send_cmds: bad hex '%s' (%d)\n", ch, rc);
+				continue;
+			}
+		} else {
 			pr_err("panel_send_cmds:cmd num over DATA_NUM = %d\n", i);
 			break;
 		}

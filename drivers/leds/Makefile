@@ -101,6 +101,11 @@ obj-$(CONFIG_LEDS_LM36274)		+= leds-lm36274.o
 obj-$(CONFIG_LEDS_REGULATOR_VIBRATOR)	+= regulator-vibrator.o
 obj-$(CONFIG_LEDS_MTK)			+= leds-mtk.o
 obj-$(CONFIG_LEDS_MTK_DISP)		+= leds-mtk-disp.o
+# AGATE(5.10): do NOT also build leds-mtk.o here.  leds-mtk.c and
+# leds-mtk-disp.c are alternative drivers that both define
+# mtk_leds_register_notifier / mtk_leds_unregister_notifier / leds_info,
+# so enabling both collides.  leds-mtk-disp.c already provides the
+# mt_leds_* entry points this kernel needs.
 
 subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/flashlight
 subdir-ccflags-y += -I$(srctree)/drivers/power/supply

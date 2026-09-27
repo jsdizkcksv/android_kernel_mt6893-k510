@@ -15,6 +15,13 @@
 #include "mtk_disp_pmqos.h"
 #include "mtk_drm_ddp_addon.h"
 #include "mi_disp/mi_disp_feature_id.h"
+/* AGATE(5.10): struct mtk_ddp_comp below keeps the 4.19 mm_qos_request
+ * fields, so their definition must be visible here.  mtk_drm_crtc.h also
+ * needs DECLARE_NUM, which 4.19 defined in this header. */
+#include "mmqos_wrapper.h"
+#ifndef DECLARE_NUM
+#define DECLARE_NUM(ENUM) ENUM,
+#endif
 struct device;
 struct device_node;
 struct drm_crtc;
@@ -172,8 +179,6 @@ struct mtk_ddp_comp_funcs {
 	void (*bgclr_in_off)(struct mtk_ddp_comp *comp);
 	void (*ctm_set)(struct mtk_ddp_comp *comp,
 			struct drm_crtc_state *state);
-			  struct drm_crtc_state *state,
-			  struct cmdq_pkt *handle);
 	void (*first_cfg)(struct mtk_ddp_comp *comp,
 		       struct mtk_ddp_config *cfg, struct cmdq_pkt *handle);
 	void (*bypass)(struct mtk_ddp_comp *comp, int bypass,
@@ -289,12 +294,6 @@ static inline void mtk_ddp_comp_layer_config(struct mtk_ddp_comp *comp,
 {
 	if (comp->funcs && comp->funcs->layer_config)
 		comp->funcs->layer_config(comp, idx, state, cmdq_pkt);
-	if (comp && comp->funcs && comp->funcs->layer_config &&
-			!comp->blank_mode) {
-		//DDPDBG("[DRM]func:%s, line:%d ==>\n", __func__, __LINE__);
-		//DDPDBG("comp_funcs:0x%p, layer_config:0x%p\n",comp->funcs, comp->funcs->layer_config);
-		comp->funcs->layer_config(comp, idx, state, handle);
-	}
 }
 
 static inline void mtk_ddp_gamma_set(struct mtk_ddp_comp *comp,

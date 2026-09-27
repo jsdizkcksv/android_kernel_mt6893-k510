@@ -17,10 +17,16 @@ snd-soc-mtk-common-$(CONFIG_SND_SOC_MTK_SRAM) += mtk-sram-manager.o
 snd-soc-mtk-common-$(CONFIG_SND_SOC_MTK_SMART_PHONE) += mtk-sp-pcm-ops.o mtk-afe-debug.o
 
 # functions for external modules
-obj-m += mtk-afe-external.o
+# AGATE(5.10): these were `obj-m`, i.e. built as .ko.  This port links
+# everything into vmlinux, and mtk-afe-fe-dai.c / mtk-scp-vow.c /
+# mtk-scp-ultra.c / scp_helper.c reference
+# notify_allocate_mem()/register_afe_allocate_mem_notifier()/
+# notify_3way_semaphore_control()/register_3way_semaphore_notifier() from
+# mtk-afe-external.c.  4.19 had this code built in.
+obj-$(CONFIG_SND_SOC_MEDIATEK) += mtk-afe-external.o
 
 # speaker dynamic detect
-obj-m += mtk-sp-spk-amp.o
+obj-$(CONFIG_SND_SOC_MEDIATEK) += mtk-sp-spk-amp.o
 
 # BT CVSD driver
 obj-$(CONFIG_SND_SOC_MTK_BTCVSD) += mtk-btcvsd.o

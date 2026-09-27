@@ -52,7 +52,7 @@ struct vcp_sub_feature_tb {
 	uint32_t enable;
 };
 
-extern struct vcp_feature_tb feature_table[NUM_FEATURE_ID];
+extern struct vcp_feature_tb vcp_feature_table[NUM_FEATURE_ID];
 
 #endif
 

@@ -160,7 +160,10 @@ ccflags-y += -I$(srctree)/drivers/misc/mediatek/apusys/debug/
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/apusys/include/
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/apusys/midware/$(APUSYS_VERSION_MIDWARE)/
 
-apusys-objs += power/2.5/common/apu-tag.o
+# AGATE(5.10): removed -- power/2.5/ is built by its own Makefile now, and
+# listing the same object here made it appear twice in built-in.a, so ld.lld
+# reported duplicate apupwr_tags_show / apupwr_init_tags / apupwr_exit_tags.
+#apusys-objs += power/2.5/common/apu-tag.o
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/apusys/power/2.5/inc/
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/apusys/power/3.0/inc/
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/apusys/power/3.0/inc/platform/

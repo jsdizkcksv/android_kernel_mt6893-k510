@@ -1,6 +1,11 @@
 # SPDX-License-Identifier: GPL-2.0-only
 config DRM_MEDIATEK
 	tristate "DRM Support for Mediatek SoCs"
+	# AGATE(5.10): 4.19's mediatek DRM Kconfig selects this; it is
+	# what makes lib/fonts/Kconfig's `if FONT_SUPPORT` block visible
+	# (mtk_drm_fbconsole.c needs font_vga_8x16).  FONT_SUPPORT has no
+	# prompt, so only a select can turn it on.
+	select FONT_SUPPORT
 	depends on DRM
 	depends on ARCH_MEDIATEK || (ARM && COMPILE_TEST)
 	depends on COMMON_CLK

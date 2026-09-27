@@ -34,6 +34,12 @@ ccci_hif_all-y := ccci_hif.o \
 		ccci_hif_dpmaif_v1.o dpmaif_drv_v1.o \
 		dpmaif_bat.o dpmaif_bat_v3.o dpmaif_debug.o net_speed.o net_pool.o
 
+# AGATE(5.10): these provide mtk_ccci_get_tx_done_aff /
+# mtk_ccci_md_spd_qos_init / mtk_ccci_spd_qos_method_init /
+# mtk_ccci_spd_qos_set_task, referenced by ccci_hif_dpmaif{,_v3}.c.
+# They exist in the tree but were missing from this object list.
+ccci_hif_all-y += md_spd_dvfs_method.o md_spd_dvfs_fn.o
+
 ccci_hif_all-y += ccci_ringbuf.o ccci_hif_ccif.o
 
 endif

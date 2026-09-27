@@ -52,7 +52,10 @@ void dsi_panel_state_count(struct lcm *lcm, int enable)
 		ktime_t boot_time;
 		u32 delta_days = 0;
 		u64 jiffies_time = 0;
-		struct timespec rtctime;
+		/* AGATE(5.10): 5.10 removed `struct timespec` and getnstimeofday();
+ * this file only reads .tv_sec, so use the timespec64/ktime_get_real_ts64
+ * idiom instead. */
+		struct timespec64 rtctime;
 
 		off_times++;
 		pr_info("%s: on_times[%llu] off_times[%llu]\n", __func__, on_times, off_times);
@@ -74,7 +77,7 @@ void dsi_panel_state_count(struct lcm *lcm, int enable)
 		snprintf(ch, sizeof(ch), "%llu", lcm->mi_count.boottime + boot_time);
 		update_hw_monitor_info(HWMON_CONPONENT_NAME, HWMON_KEY_BOOTTIME, ch);
 
-		getnstimeofday(&rtctime);
+		ktime_get_real_ts64(&rtctime);
 		if (lcm->mi_count.bootRTCtime != 0) {
 			if (rtctime.tv_sec > lcm->mi_count.bootRTCtime) {
 				if (rtctime.tv_sec - lcm->mi_count.bootRTCtime > 10 * 365 * DAY_SECS) {
@@ -303,7 +306,7 @@ int dsi_panel_disp_count_set(struct lcm *lcm, const char *buf)
 	u64 fps_times[FPS_MAX_NUM] = {0};
 
 	ssize_t result;
-	struct timespec rtctime;
+	struct timespec64 rtctime;
 
 	pr_info("[LCD] %s: begin\n", __func__);
 
@@ -366,7 +369,7 @@ int dsi_panel_disp_count_set(struct lcm *lcm, const char *buf)
 	}
 #endif
 
-	getnstimeofday(&rtctime);
+	ktime_get_real_ts64(&rtctime);
 	if (rtctime.tv_sec > kernel_rtctime) {
 		if (rtctime.tv_sec - kernel_rtctime > 10 * 365 * DAY_SECS) {
 			lcm->mi_count.bootRTCtime = rtctime.tv_sec;
@@ -448,7 +451,7 @@ ssize_t dsi_panel_disp_count_get(struct lcm *lcm, char *buf)
 	int ret = -1;
 	ktime_t boot_time;
 	u64 record_end = 0;
-	/* struct timespec rtctime; */
+	/* struct timespec64 rtctime; */
 
 	if (!lcm) {
 		pr_err("invalid panel\n");
@@ -462,7 +465,7 @@ ssize_t dsi_panel_disp_count_get(struct lcm *lcm, char *buf)
 
 	boot_time = ktime_get_boottime();
 	do_div(boot_time, NSEC_PER_SEC);
-	/* getnstimeofday(&rtctime); */
+	/* ktime_get_real_ts64(&rtctime); */
 
 	ret = scnprintf(buf, PAGE_SIZE,
 		"panel_active=%llu\n"

@@ -9,6 +9,7 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/of_device.h>
+#include <linux/of_platform.h>
 #include <linux/platform_device.h>
 #include <linux/regmap.h>
 #include <linux/reset.h>
@@ -2278,6 +2279,27 @@ static const struct of_device_id of_pwrap_match_tbl[] = {
 	}
 };
 MODULE_DEVICE_TABLE(of, of_pwrap_match_tbl);
+
+/* AGATE(5.10): MTK vendor addition, ported from 4.19
+ * drivers/soc/mediatek/mtk-pmic-wrap.c.  accdet (mt6359/accdet.c) resolves the
+ * accdet regmap from its DT node through this helper; the mainline file that
+ * 5.10 imported never carried it. */
+struct regmap *pwrap_node_to_regmap(struct device_node *np)
+{
+	struct platform_device *pdev;
+	struct pmic_wrapper *wrp;
+
+	pdev = of_find_device_by_node(np);
+	if (!pdev)
+		return ERR_PTR(-ENODEV);
+
+	wrp = platform_get_drvdata(pdev);
+	if (!wrp)
+		return ERR_PTR(-ENODEV);
+
+	return wrp->regmap;
+}
+EXPORT_SYMBOL_GPL(pwrap_node_to_regmap);
 
 static int pwrap_probe(struct platform_device *pdev)
 {

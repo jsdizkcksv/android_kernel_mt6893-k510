@@ -177,7 +177,11 @@ static const s32 cmdq_max_task_in_secure_thread[
 static const s32 cmdq_tz_cmd_block_size[CMDQ_MAX_SECURE_THREAD_COUNT] = {
 	4 << 12, 4 << 12, 20 << 12, 4 << 12, 4 << 12};
 
-struct cmdq_sec_helper_fp helper_fp = {
+/* AGATE(5.10): cmdq-util.c defines its own `helper_fp` (different struct
+ * type) and is the one exported via the cmdq-helpers API.  This one is only
+ * used inside this file (cmdq_sec_helper_set_fp below), so keep it local to
+ * avoid a duplicate-symbol clash in the built-in kernel. */
+static struct cmdq_sec_helper_fp helper_fp = {
 	.sec_insert_backup_cookie_fp = cmdq_sec_insert_backup_cookie,
 	.sec_pkt_wait_complete_fp = cmdq_sec_pkt_wait_complete,
 	.sec_pkt_free_data_fp = cmdq_sec_pkt_free_data,

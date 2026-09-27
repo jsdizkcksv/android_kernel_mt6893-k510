@@ -1,4 +1,30 @@
 # SPDX-License-Identifier: GPL-2.0
+# AGATE: mi_disp/*.o are built from this directory (composite target
+# below), so they need the include set that mediatek_v2/Makefile only sets
+# for its own subdir.  drivers/gpu/drm/mediatek must come before
+# mediatek_v2/ so mi_disp resolves mtk_drm_crtc.h / mtk_panel_ext.h to the
+# full top-level headers rather than the slim v2 copies.
+ccflags-y += -I$(srctree)/drivers/gpu/drm/mediatek
+ccflags-y += -I$(srctree)/drivers/gpu/drm/mediatek/mediatek_v2/
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/include
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/mtk-interconnect/
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/mmqos/
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/slbc/ \
+		-I$(srctree)/drivers/misc/mediatek/smi/ \
+		-I$(srctree)/drivers/misc/mediatek/mmdvfs/ \
+		-I$(srctree)/drivers/misc/mediatek/mmp/ \
+		-I$(srctree)/drivers/misc/mediatek/pmic/ \
+		-I$(srctree)/drivers/iommu/ \
+		-I$(srctree)/drivers/devfreq/ \
+		-I$(srctree)/drivers/misc/mediatek/leds/ \
+		-I$(srctree)/drivers/misc/mediatek/cmdq/mailbox/ \
+		-I$(srctree)/drivers/dma-buf/heaps/ \
+		-I$(srctree)/drivers/misc/mediatek/dramc/$(MTK_PLATFORM) \
+		-I$(srctree)/drivers/misc/mediatek/include/mt-plat/$(MTK_PLATFORM)/include/mach/ \
+		-I$(srctree)/drivers/misc/mediatek/include/mt-plat/$(MTK_PLATFORM)/include/ \
+		-I$(srctree)/drivers/misc/mediatek/scp/include/
+
 
 ifeq (y, $(filter y, $(CONFIG_DRM_MEDIATEK_V2)))
 obj-$(CONFIG_DRM_MEDIATEK) += mediatek_v2/
@@ -17,7 +43,13 @@ mediatek-mi-disp-y := mi_disp/mi_disp_sysfs.o \
 		  mi_disp/mi_disp_file.o \
 		  mi_disp/mi_disp_print.o \
 		  mi_disp/mi_disp_debugfs.o \
-		  mi_disp/mi_cooler_brightness_clone.o
+		  mi_disp/mi_cooler_brightness_clone.o \
+		  mi_disp/mi_disp_calib.o \
+		  mi_disp/mi_dsi_panel_count.o \
+		  mi_disp/mi_drm_crtc.o
+# AGATE(5.10): mi_disp_esd_check.o is deliberately NOT built -- it
+# targets the 4.19 mediatek-drm helper_opt / mtk_ddp_comp_io_cmd APIs
+# that mediatek_v2 lacks, and ESD polling is not needed for a first boot.
 obj-$(CONFIG_DRM_MEDIATEK) += mediatek-mi-disp.o
 else
 
@@ -34,7 +66,7 @@ mediatek-drm-y := mtk_disp_color.o \
 		  mtk_mipi_tx.o \
 		  mtk_mt8173_mipi_tx.o \
 		  mtk_mt8183_mipi_tx.o \
-		  mtk_dpi.o
+		  mtk_dpi.o \
 		  mtk_writeback.o \
 		  mtk_sync.o \
 		  mtk_fence.o \

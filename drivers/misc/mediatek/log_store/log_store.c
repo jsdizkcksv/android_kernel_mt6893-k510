@@ -298,7 +298,7 @@ struct logstore_tag_bootmode {
 };
 #define NORMAL_BOOT_MODE 0
 
-unsigned int get_boot_mode_from_dts(void)
+static unsigned int get_boot_mode_from_dts(void)
 {
 	struct device_node *np_chosen = NULL;
 	struct logstore_tag_bootmode *tag = NULL;

@@ -11,6 +11,13 @@
 # GNU General Public License for more details.
 
 ifneq ($(CONFIG_MICROTRUST_TEE_SUPPORT),)
-$(info "CONFIG_MICROTRUST_TEE_VERSION=$(CONFIG_MICROTRUST_TEE_VERSION)")
-obj-$(CONFIG_MICROTRUST_TEE_SUPPORT) += $(subst ",,$(CONFIG_MICROTRUST_TEE_VERSION))/
+# AGATE(5.10): CONFIG_MICROTRUST_TEE_VERSION is empty in this defconfig,
+# which made the whole subdir name empty so teei/<ver>/ (and therefore
+# tee_client_api.c providing TEEC_*) was never built.  The source tree
+# only ships 400/, so default to it.
+MICROTRUST_TEE_VERSION := $(subst ",,$(CONFIG_MICROTRUST_TEE_VERSION))
+ifeq ($(MICROTRUST_TEE_VERSION),)
+MICROTRUST_TEE_VERSION := 400
+endif
+obj-$(CONFIG_MICROTRUST_TEE_SUPPORT) += $(MICROTRUST_TEE_VERSION)/
 endif

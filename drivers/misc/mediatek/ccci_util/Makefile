@@ -56,3 +56,11 @@ ccci_util_lib-$(CCCI_OBJ) := ccci_util_lib_fo.o \
 endif
 endif
 
+
+# AGATE(5.10): the 4.19 tree ends this Makefile with these two lines
+# (comment included upstream).  The 5.10 import kept ccci_util_dummy.c
+# but dropped them, so its __weak stubs (spm_is_md1_sleep,
+# switch_sim_mode, get_sim_switch_type, exec_ccci_kern_func_by_md_id,
+# spm_ap_mdsrc_req) never got compiled and stayed undefined at link.
+obj-y += CCCI_UTIL_DUMMY.o # avoid build error
+CCCI_UTIL_DUMMY-y := ccci_util_dummy.o

@@ -1,7 +1,15 @@
 # SPDX-License-Identifier: GPL-2.0
 
 ifdef CONFIG_LEDS_MTK_DISP
-obj-$(CONFIG_LEDS_MTK_DISP)		+= leds-mtk-disp.o
+# AGATE(5.10): NOT built.  drivers/leds/leds-mtk.c + drivers/leds/leds-mtk-disp.c
+# (the 2021 pair, also selected by CONFIG_LEDS_MTK_DISP) own this driver in the
+# 5.10 tree; building both produced
+#   duplicate symbol: mtk_leds_register_notifier / mtk_leds_unregister_notifier
+#   duplicate symbol: leds_info
+# and both expose the same `mediatek,disp-leds` compatible, so only one may be
+# compiled.  The consumers (mediatek_v2 mtk_disp_aal/ccorr, gate_ic, thermal)
+# are served by the drivers/leds pair.
+#obj-$(CONFIG_LEDS_MTK_DISP)		+= leds-mtk-disp.o
 else ifdef CONFIG_LEDS_MTK_PWM
 obj-$(CONFIG_LEDS_MTK_PWM)		+= leds-mtk-pwm.o
 else ifdef CONFIG_LEDS_MTK_I2C

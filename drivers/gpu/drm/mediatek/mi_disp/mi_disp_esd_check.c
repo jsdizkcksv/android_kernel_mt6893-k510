@@ -25,7 +25,7 @@
 #include <linux/sched/clock.h>
 #include <uapi/linux/sched/types.h>
 #include <drm/drmP.h>
-#include <linux/soc/mediatek/mtk-cmdq.h>
+#include <linux/soc/mediatek/mtk-cmdq-ext.h>
 
 #include "../../../../kernel/irq/internals.h"
 #include "mtk_drm_drv.h"

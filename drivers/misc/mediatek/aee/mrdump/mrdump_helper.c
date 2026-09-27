@@ -26,7 +26,12 @@
 #include <sched/sched.h>
 #include "mrdump_private.h"
 
-#ifdef MODULE
+/* AGATE(5.10): built-in kernel.  The 4.19 file carried no
+ * `#ifdef MODULE` guard here; mrdump_control.c calls
+ * aee_get_k*_off() unconditionally, so the definitions must
+ * exist for a built-in build as well.  Keep the guard only so
+ * MODULE builds still behave exactly as before. */
+#if defined(MODULE) || defined(CONFIG_MTK_AEE_IPANIC)
 
 #define NAME_LEN	128
 

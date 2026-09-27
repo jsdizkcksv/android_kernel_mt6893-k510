@@ -60,7 +60,11 @@ struct mtk_heap_dev_info {
 };
 
 /* common function */
-void dmabuf_release_check(const struct dma_buf *dmabuf)
+/* AGATE(5.10): this header is included by system_heap.c and mtk_sec_heap.c;
+ * as a plain function it produced
+ *   ld.lld: error: duplicate symbol: dmabuf_release_check
+ * Nothing outside those two files calls it, so keep the definition per-TU. */
+static inline void dmabuf_release_check(const struct dma_buf *dmabuf)
 {
 	dma_addr_t iova = 0x0;
 	const char *device_name = NULL;

@@ -11,6 +11,11 @@
 # GNU General Public License for more details.
 #
 subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/$(MTK_PLATFORM)/include
+# AGATE(5.10): power/mt6885/mtk_battery_intf.c includes <mt-plat/v1/...>;
+# the root mt-plat dir was never on the path for this subtree.
+subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/include
+subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat
+subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/v1
 ifeq ($(CONFIG_AGATE_CHARGER),y)
 subdir-ccflags-y += -I$(srctree)/drivers/power/supply/mediatek/battery_agate
 subdir-ccflags-y += -I$(srctree)/drivers/power/supply/mediatek/charger_agate

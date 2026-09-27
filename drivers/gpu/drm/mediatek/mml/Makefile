@@ -57,21 +57,14 @@ ifneq (,$(strip $(CONFIG_MMPROFILE)))
 mtk-mml-objs += mtk-mml-mmp.o
 endif
 
+# AGATE: every mtk-mml-tp-mt<SoC>.c defines the same mml_* entry points
+# (mml_dual, mml_force_rsz, mml_path_mode, ...), so only the platform's own
+# file may be linked.  The stock Makefile wildcards all of them in.
 ifneq ($(wildcard $(srctree)/$(src)/mtk-mml-tp-mt6893.c),)
+ifneq ($(CONFIG_MACH_MT6893),)
 obj-$(CONFIG_MTK_MML) += mtk-mml-mt6893.o
 mtk-mml-mt6893-objs := mtk-mml-tp-mt6893.o
 endif
-ifneq ($(wildcard $(srctree)/$(src)/mtk-mml-tp-mt6983.c),)
-obj-$(CONFIG_MTK_MML) += mtk-mml-mt6983.o
-mtk-mml-mt6983-objs := mtk-mml-tp-mt6983.o
-endif
-ifneq ($(wildcard $(srctree)/$(src)/mtk-mml-tp-mt6879.c),)
-obj-$(CONFIG_MTK_MML) += mtk-mml-mt6879.o
-mtk-mml-mt6879-objs := mtk-mml-tp-mt6879.o
-endif
-ifneq ($(wildcard $(srctree)/$(src)/mtk-mml-tp-mt6895.c),)
-obj-$(CONFIG_MTK_MML) += mtk-mml-mt6895.o
-mtk-mml-mt6895-objs := mtk-mml-tp-mt6895.o
 endif
 
 # for unit test

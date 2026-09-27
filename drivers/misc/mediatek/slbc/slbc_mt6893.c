@@ -39,7 +39,21 @@ static struct mmsram_data mmsram;
 
 #if IS_ENABLED(CONFIG_MTK_L3C_PART)
 #include <l3c_part.h>
+
+/* AGATE(5.10): platform implementations of the slbc_common_ops
+ * API.  The public slbc_* names belong to slbc.c (framework), which
+ * dispatches here through common_ops, so these are file-local. */
+
 #endif /* CONFIG_MTK_L3C_PART */
+
+/* AGATE(5.10): platform ops are file-local now; the internal callers
+ * above need the prototypes outside any vendor conditional block. */
+static int slbc_mt6893_request(struct slbc_data *d);
+static int slbc_mt6893_release(struct slbc_data *d);
+static int slbc_mt6893_power_on(struct slbc_data *d);
+static int slbc_mt6893_power_off(struct slbc_data *d);
+static int slbc_mt6893_secure_on(struct slbc_data *d);
+static int slbc_mt6893_secure_off(struct slbc_data *d);
 
 /* #define SLBC_THREAD */
 /* #define SLBC_TRACE */
@@ -245,7 +259,7 @@ int slbc_activate(struct slbc_data *d)
 
 	ops = container_of(&d, struct slbc_ops, data);
 	if (ops && ops->activate) {
-		ret = slbc_request(d);
+		ret = slbc_mt6893_request(d);
 		if (ret) {
 			pr_info("#@# %s(%d) %s request fail!\n",
 					__func__, __LINE__, slbc_uid_str[uid]);
@@ -257,7 +271,7 @@ int slbc_activate(struct slbc_data *d)
 			pr_info("#@# %s(%d) %s activate fail!\n",
 					__func__, __LINE__, slbc_uid_str[uid]);
 
-			ret = slbc_release(d);
+			ret = slbc_mt6893_release(d);
 			if (ret) {
 				pr_info("#@# %s(%d) %s release fail!\n",
 						__func__, __LINE__,
@@ -620,7 +634,7 @@ static int slbc_request_acp(void *ptr)
 	return ret;
 }
 
-int slbc_request(struct slbc_data *d)
+static int slbc_mt6893_request(struct slbc_data *d)
 {
 	struct slbc_data *pd;
 	unsigned int uid;
@@ -823,7 +837,7 @@ static int slbc_release_acp(void *ptr)
 	return ret;
 }
 
-int slbc_release(struct slbc_data *d)
+static int slbc_mt6893_release(struct slbc_data *d)
 {
 	struct slbc_data *pd;
 #ifdef SLBC_THREAD
@@ -958,7 +972,7 @@ error:
 	return 0;
 }
 
-int slbc_power_on(struct slbc_data *d)
+static int slbc_mt6893_power_on(struct slbc_data *d)
 {
 	unsigned int uid;
 
@@ -990,7 +1004,7 @@ int slbc_power_on(struct slbc_data *d)
 	return 0;
 }
 
-int slbc_power_off(struct slbc_data *d)
+static int slbc_mt6893_power_off(struct slbc_data *d)
 {
 	unsigned int uid;
 
@@ -1022,7 +1036,7 @@ int slbc_power_off(struct slbc_data *d)
 	return 0;
 }
 
-int slbc_secure_on(struct slbc_data *d)
+static int slbc_mt6893_secure_on(struct slbc_data *d)
 {
 	unsigned int uid;
 
@@ -1051,7 +1065,7 @@ int slbc_secure_on(struct slbc_data *d)
 	return 0;
 }
 
-int slbc_secure_off(struct slbc_data *d)
+static int slbc_mt6893_secure_off(struct slbc_data *d)
 {
 	unsigned int uid;
 
@@ -1199,12 +1213,12 @@ static ssize_t dbg_slbc_proc_write(struct file *file,
 		test_d.uid = UID_TEST_ACP;
 		test_d.type  = TP_ACP;
 		test_d.flag = val_1;
-		slbc_request(&test_d);
+		slbc_mt6893_request(&test_d);
 	} else if (!strcmp(cmd, "test_acp_release")) {
 		test_d.uid = UID_TEST_ACP;
 		test_d.type  = TP_ACP;
 		test_d.flag = val_1;
-		slbc_release(&test_d);
+		slbc_mt6893_release(&test_d);
 	} else if (!strcmp(cmd, "debug_level")) {
 		debug_level = val_1;
 	}
@@ -1254,12 +1268,12 @@ static int slbc_create_debug_fs(void)
 }
 
 static struct slbc_common_ops common_ops = {
-	.slbc_request = slbc_request,
-	.slbc_release = slbc_release,
-	.slbc_power_on = slbc_power_on,
-	.slbc_power_off = slbc_power_off,
-	.slbc_secure_on = slbc_secure_on,
-	.slbc_secure_off = slbc_secure_off,
+	.slbc_request = slbc_mt6893_request,
+	.slbc_release = slbc_mt6893_release,
+	.slbc_power_on = slbc_mt6893_power_on,
+	.slbc_power_off = slbc_mt6893_power_off,
+	.slbc_secure_on = slbc_mt6893_secure_on,
+	.slbc_secure_off = slbc_mt6893_secure_off,
 };
 
 static int slbc_probe(struct platform_device *pdev)

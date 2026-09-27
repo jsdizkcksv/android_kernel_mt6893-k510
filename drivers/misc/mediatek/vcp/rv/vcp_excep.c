@@ -40,7 +40,7 @@ struct reg_save_st {
 	uint32_t size;
 };
 
-struct reg_save_st reg_save_list[] = {
+static struct reg_save_st reg_save_list[] = {
 	/* size must 16 byte alignment */
 	{0x1EC24000, 0x170},
 	{0x1EC30000, 0x180},
@@ -62,10 +62,10 @@ struct vcp_dump_st vcp_dump;
 //static unsigned int vcp_A_dump_length;
 static unsigned int vcp_A_task_context_addr;
 
-struct vcp_status_reg *c0_m = NULL;
-struct vcp_status_reg *c0_t1_m = NULL;
-struct vcp_status_reg *c1_m = NULL;
-struct vcp_status_reg *c1_t1_m = NULL;
+struct vcp_status_reg *vcp_c0_m = NULL;
+struct vcp_status_reg *vcp_c0_t1_m = NULL;
+struct vcp_status_reg *vcp_c1_m = NULL;
+struct vcp_status_reg *vcp_c1_t1_m = NULL;
 void (*vcp_do_tbufdump)(uint32_t*, uint32_t*) = NULL;
 
 static struct mutex vcp_excep_mutex;
@@ -116,75 +116,75 @@ void vcp_dump_last_regs(int mmup_enable)
 		return;
 	}
 
-	c0_m->status = readl(R_CORE0_STATUS);
-	c0_m->pc = readl(R_CORE0_MON_PC);
-	c0_m->lr = readl(R_CORE0_MON_LR);
-	c0_m->sp = readl(R_CORE0_MON_SP);
-	c0_m->pc_latch = readl(R_CORE0_MON_PC_LATCH);
-	c0_m->lr_latch = readl(R_CORE0_MON_LR_LATCH);
-	c0_m->sp_latch = readl(R_CORE0_MON_SP_LATCH);
+	vcp_c0_m->status = readl(R_CORE0_STATUS);
+	vcp_c0_m->pc = readl(R_CORE0_MON_PC);
+	vcp_c0_m->lr = readl(R_CORE0_MON_LR);
+	vcp_c0_m->sp = readl(R_CORE0_MON_SP);
+	vcp_c0_m->pc_latch = readl(R_CORE0_MON_PC_LATCH);
+	vcp_c0_m->lr_latch = readl(R_CORE0_MON_LR_LATCH);
+	vcp_c0_m->sp_latch = readl(R_CORE0_MON_SP_LATCH);
 	if (vcpreg.twohart) {
-		c0_t1_m->pc = readl(R_CORE0_T1_MON_PC);
-		c0_t1_m->lr = readl(R_CORE0_T1_MON_LR);
-		c0_t1_m->sp = readl(R_CORE0_T1_MON_SP);
-		c0_t1_m->pc_latch = readl(R_CORE0_T1_MON_PC_LATCH);
-		c0_t1_m->lr_latch = readl(R_CORE0_T1_MON_LR_LATCH);
-		c0_t1_m->sp_latch = readl(R_CORE0_T1_MON_SP_LATCH);
+		vcp_c0_t1_m->pc = readl(R_CORE0_T1_MON_PC);
+		vcp_c0_t1_m->lr = readl(R_CORE0_T1_MON_LR);
+		vcp_c0_t1_m->sp = readl(R_CORE0_T1_MON_SP);
+		vcp_c0_t1_m->pc_latch = readl(R_CORE0_T1_MON_PC_LATCH);
+		vcp_c0_t1_m->lr_latch = readl(R_CORE0_T1_MON_LR_LATCH);
+		vcp_c0_t1_m->sp_latch = readl(R_CORE0_T1_MON_SP_LATCH);
 	}
 	if (vcpreg.core_nums == 2) {
-		c1_m->status = readl(R_CORE1_STATUS);
-		c1_m->pc = readl(R_CORE1_MON_PC);
-		c1_m->lr = readl(R_CORE1_MON_LR);
-		c1_m->sp = readl(R_CORE1_MON_SP);
-		c1_m->pc_latch = readl(R_CORE1_MON_PC_LATCH);
-		c1_m->lr_latch = readl(R_CORE1_MON_LR_LATCH);
-		c1_m->sp_latch = readl(R_CORE1_MON_SP_LATCH);
+		vcp_c1_m->status = readl(R_CORE1_STATUS);
+		vcp_c1_m->pc = readl(R_CORE1_MON_PC);
+		vcp_c1_m->lr = readl(R_CORE1_MON_LR);
+		vcp_c1_m->sp = readl(R_CORE1_MON_SP);
+		vcp_c1_m->pc_latch = readl(R_CORE1_MON_PC_LATCH);
+		vcp_c1_m->lr_latch = readl(R_CORE1_MON_LR_LATCH);
+		vcp_c1_m->sp_latch = readl(R_CORE1_MON_SP_LATCH);
 	}
 
 	if (vcpreg.core_nums == 2 && vcpreg.twohart) {
-		c1_t1_m->pc = readl(R_CORE1_T1_MON_PC);
-		c1_t1_m->lr = readl(R_CORE1_T1_MON_LR);
-		c1_t1_m->sp = readl(R_CORE1_T1_MON_SP);
-		c1_t1_m->pc_latch = readl(R_CORE1_T1_MON_PC_LATCH);
-		c1_t1_m->lr_latch = readl(R_CORE1_T1_MON_LR_LATCH);
-		c1_t1_m->sp_latch = readl(R_CORE1_T1_MON_SP_LATCH);
+		vcp_c1_t1_m->pc = readl(R_CORE1_T1_MON_PC);
+		vcp_c1_t1_m->lr = readl(R_CORE1_T1_MON_LR);
+		vcp_c1_t1_m->sp = readl(R_CORE1_T1_MON_SP);
+		vcp_c1_t1_m->pc_latch = readl(R_CORE1_T1_MON_PC_LATCH);
+		vcp_c1_t1_m->lr_latch = readl(R_CORE1_T1_MON_LR_LATCH);
+		vcp_c1_t1_m->sp_latch = readl(R_CORE1_T1_MON_SP_LATCH);
 	}
 
-	pr_notice("[VCP] c0_status = %08x\n", c0_m->status);
-	pr_notice("[VCP] c0_pc = %08x\n", c0_m->pc);
+	pr_notice("[VCP] c0_status = %08x\n", vcp_c0_m->status);
+	pr_notice("[VCP] c0_pc = %08x\n", vcp_c0_m->pc);
 	pr_notice("[VCP] c0_pc2 = %08x\n", readl(R_CORE0_MON_PC));
-	pr_notice("[VCP] c0_lr = %08x\n", c0_m->lr);
-	pr_notice("[VCP] c0_sp = %08x\n", c0_m->sp);
-	pr_notice("[VCP] c0_pc_latch = %08x\n", c0_m->pc_latch);
-	pr_notice("[VCP] c0_lr_latch = %08x\n", c0_m->lr_latch);
-	pr_notice("[VCP] c0_sp_latch = %08x\n", c0_m->sp_latch);
+	pr_notice("[VCP] c0_lr = %08x\n", vcp_c0_m->lr);
+	pr_notice("[VCP] c0_sp = %08x\n", vcp_c0_m->sp);
+	pr_notice("[VCP] c0_pc_latch = %08x\n", vcp_c0_m->pc_latch);
+	pr_notice("[VCP] c0_lr_latch = %08x\n", vcp_c0_m->lr_latch);
+	pr_notice("[VCP] c0_sp_latch = %08x\n", vcp_c0_m->sp_latch);
 	if (vcpreg.twohart) {
-		pr_notice("[VCP] c0_t1_pc = %08x\n", c0_t1_m->pc);
+		pr_notice("[VCP] c0_t1_pc = %08x\n", vcp_c0_t1_m->pc);
 		pr_notice("[VCP] c0_t1_pc2 = %08x\n", readl(R_CORE0_T1_MON_PC));
-		pr_notice("[VCP] c0_t1_lr = %08x\n", c0_t1_m->lr);
-		pr_notice("[VCP] c0_t1_sp = %08x\n", c0_t1_m->sp);
-		pr_notice("[VCP] c0_t1_pc_latch = %08x\n", c0_t1_m->pc_latch);
-		pr_notice("[VCP] c0_t1_lr_latch = %08x\n", c0_t1_m->lr_latch);
-		pr_notice("[VCP] c0_t1_sp_latch = %08x\n", c0_t1_m->sp_latch);
+		pr_notice("[VCP] c0_t1_lr = %08x\n", vcp_c0_t1_m->lr);
+		pr_notice("[VCP] c0_t1_sp = %08x\n", vcp_c0_t1_m->sp);
+		pr_notice("[VCP] c0_t1_pc_latch = %08x\n", vcp_c0_t1_m->pc_latch);
+		pr_notice("[VCP] c0_t1_lr_latch = %08x\n", vcp_c0_t1_m->lr_latch);
+		pr_notice("[VCP] c0_t1_sp_latch = %08x\n", vcp_c0_t1_m->sp_latch);
 	}
 	if (vcpreg.core_nums == 2) {
-		pr_notice("[VCP] c1_status = %08x\n", c1_m->status);
-		pr_notice("[VCP] c1_pc = %08x\n", c1_m->pc);
+		pr_notice("[VCP] c1_status = %08x\n", vcp_c1_m->status);
+		pr_notice("[VCP] c1_pc = %08x\n", vcp_c1_m->pc);
 		pr_notice("[VCP] c1_pc2 = %08x\n", readl(R_CORE1_MON_PC));
-		pr_notice("[VCP] c1_lr = %08x\n", c1_m->lr);
-		pr_notice("[VCP] c1_sp = %08x\n", c1_m->sp);
-		pr_notice("[VCP] c1_pc_latch = %08x\n", c1_m->pc_latch);
-		pr_notice("[VCP] c1_lr_latch = %08x\n", c1_m->lr_latch);
-		pr_notice("[VCP] c1_sp_latch = %08x\n", c1_m->sp_latch);
+		pr_notice("[VCP] c1_lr = %08x\n", vcp_c1_m->lr);
+		pr_notice("[VCP] c1_sp = %08x\n", vcp_c1_m->sp);
+		pr_notice("[VCP] c1_pc_latch = %08x\n", vcp_c1_m->pc_latch);
+		pr_notice("[VCP] c1_lr_latch = %08x\n", vcp_c1_m->lr_latch);
+		pr_notice("[VCP] c1_sp_latch = %08x\n", vcp_c1_m->sp_latch);
 	}
 	if (vcpreg.core_nums == 2 && vcpreg.twohart) {
-		pr_notice("[VCP] c1_t1_pc = %08x\n", c1_t1_m->pc);
+		pr_notice("[VCP] c1_t1_pc = %08x\n", vcp_c1_t1_m->pc);
 		pr_notice("[VCP] c1_t1_pc2 = %08x\n", readl(R_CORE1_T1_MON_PC));
-		pr_notice("[VCP] c1_t1_lr = %08x\n", c1_t1_m->lr);
-		pr_notice("[VCP] c1_t1_sp = %08x\n", c1_t1_m->sp);
-		pr_notice("[VCP] c1_t1_pc_latch = %08x\n", c1_t1_m->pc_latch);
-		pr_notice("[VCP] c1_t1_lr_latch = %08x\n", c1_t1_m->lr_latch);
-		pr_notice("[VCP] c1_t1_sp_latch = %08x\n", c1_t1_m->sp_latch);
+		pr_notice("[VCP] c1_t1_lr = %08x\n", vcp_c1_t1_m->lr);
+		pr_notice("[VCP] c1_t1_sp = %08x\n", vcp_c1_t1_m->sp);
+		pr_notice("[VCP] c1_t1_pc_latch = %08x\n", vcp_c1_t1_m->pc_latch);
+		pr_notice("[VCP] c1_t1_lr_latch = %08x\n", vcp_c1_t1_m->lr_latch);
+		pr_notice("[VCP] c1_t1_sp_latch = %08x\n", vcp_c1_t1_m->sp_latch);
 	}
 
 	/* bus tracker reg dump */
@@ -466,7 +466,7 @@ static void vcp_prepare_aed_dump(char *aed_str, enum vcp_core_id id)
 		offset = snprintf(vcp_dump.detail_buff + offset,
 			VCP_AED_STR_LEN - offset,
 			"core0 pc=0x%08x, lr=0x%08x, sp=0x%08x\n",
-			c0_m->pc, c0_m->lr, c0_m->sp);
+			vcp_c0_m->pc, vcp_c0_m->lr, vcp_c0_m->sp);
 		if (offset < 0)
 			pr_notice("%s line %d error\n", __func__, __LINE__);
 
@@ -476,7 +476,7 @@ static void vcp_prepare_aed_dump(char *aed_str, enum vcp_core_id id)
 		offset = snprintf(vcp_dump.detail_buff + offset,
 			VCP_AED_STR_LEN - offset,
 			"hart1 pc=0x%08x, lr=0x%08x, sp=0x%08x\n",
-			c0_t1_m->pc, c0_t1_m->lr, c0_t1_m->sp);
+			vcp_c0_t1_m->pc, vcp_c0_t1_m->lr, vcp_c0_t1_m->sp);
 		if (offset < 0)
 			pr_notice("%s line %d error\n", __func__, __LINE__);
 core1:
@@ -486,7 +486,7 @@ core1:
 		offset = snprintf(vcp_dump.detail_buff + offset,
 			VCP_AED_STR_LEN - offset,
 			"core1 pc=0x%08x, lr=0x%08x, sp=0x%08x\n",
-			c1_m->pc, c1_m->lr, c1_m->sp);
+			vcp_c1_m->pc, vcp_c1_m->lr, vcp_c1_m->sp);
 		if (offset < 0)
 			pr_notice("%s line %d error\n", __func__, __LINE__);
 
@@ -496,7 +496,7 @@ core1:
 		offset = snprintf(vcp_dump.detail_buff + offset,
 			VCP_AED_STR_LEN - offset,
 			"hart1 pc=0x%08x, lr=0x%08x, sp=0x%08x\n",
-			c1_t1_m->pc, c1_t1_m->lr, c1_t1_m->sp);
+			vcp_c1_t1_m->pc, vcp_c1_t1_m->lr, vcp_c1_t1_m->sp);
 		if (offset < 0)
 			pr_notice("%s line %d error\n", __func__, __LINE__);
 end:
@@ -642,22 +642,22 @@ int vcp_excep_init(void)
 		return -1;
 
 	/* vcp_status_reg init */
-	c0_m = vmalloc(sizeof(struct vcp_status_reg));
-	if (!c0_m)
+	vcp_c0_m = vmalloc(sizeof(struct vcp_status_reg));
+	if (!vcp_c0_m)
 		return -1;
 	if (vcpreg.twohart) {
-		c0_t1_m = vmalloc(sizeof(struct vcp_status_reg));
-		if (!c0_t1_m)
+		vcp_c0_t1_m = vmalloc(sizeof(struct vcp_status_reg));
+		if (!vcp_c0_t1_m)
 			return -1;
 	}
 	if (vcpreg.core_nums == 2) {
-		c1_m = vmalloc(sizeof(struct vcp_status_reg));
-		if (!c1_m)
+		vcp_c1_m = vmalloc(sizeof(struct vcp_status_reg));
+		if (!vcp_c1_m)
 			return -1;
 	}
 	if (vcpreg.core_nums == 2 && vcpreg.twohart) {
-		c1_t1_m = vmalloc(sizeof(struct vcp_status_reg));
-		if (!c1_t1_m)
+		vcp_c1_t1_m = vmalloc(sizeof(struct vcp_status_reg));
+		if (!vcp_c1_t1_m)
 			return -1;
 	}
 	/* vcp_do_tbufdump init, because tbuf is different between rv33/rv55 */

@@ -31,7 +31,12 @@ extern void aee_reinit_die_lock(void);
 #if IS_ENABLED(CONFIG_MODULES)
 extern void init_ko_addr_list_late(void);
 #endif
-#ifdef MODULE
+/* AGATE(5.10): mrdump_helper.c compiles the kernel_all_info parsing block
+ * (which defines aee_get_k*_off()) for built-in kernels as well, because
+ * mrdump_control.c calls those five accessors unconditionally.  That block
+ * calls the two mini helpers, so their prototypes cannot stay MODULE-only.
+ * mini.c defines both unconditionally. */
+#if defined(MODULE) || defined(CONFIG_MTK_AEE_IPANIC)
 int mrdump_ka_init(void *vaddr);
 extern void mrdump_mini_add_klog(void);
 extern void mrdump_mini_add_kallsyms(void);

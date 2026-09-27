@@ -356,7 +356,9 @@ static void __request_audio(int id)
 	queue_work(audio_boost_inst.wq, &(audio_boost_inst.work));
 }
 
-static int update_time_audio(void)
+/* AGATE(5.10): also called from xhci_urb_giveback_dbg()'s ISOCH path,
+ * so this must stay live even though the audio trace hook is gated. */
+static int __maybe_unused update_time_audio(void)
 {
 	ktime_get_ts64(&audio_boost_inst.tv_ref_time);
 	return 1;
@@ -407,7 +409,11 @@ static void audio_boost_work(struct work_struct *work_struct)
 	USB_BOOST_NOTICE("audio_boost, end of work\n");
 }
 
-static void vh_sound_usb_support_cpu_suspend(void *unused,
+/* AGATE(5.10): this 5.10 tree has no
+ * android_vh_sound_usb_support_cpu_suspend tracepoint, so nothing calls
+ * this handler; __maybe_unused keeps it warning-free without preprocessor
+ * surgery (an `#if 0` here previously un-balanced the surrounding block). */
+static void __maybe_unused vh_sound_usb_support_cpu_suspend(void *unused,
 	struct usb_device *udev, int direction, bool *is_support)
 {
 	USB_BOOST_DBG("%s enter\n", __func__);
@@ -821,8 +827,12 @@ static int mtu3_trace_init(void)
 		boost_ep_disable, NULL));
 	WARN_ON(register_trace_mtu3_req_complete(
 		mtu3_req_complete_boost, NULL));
+	/* AGATE(5.10): the tracepoint does not exist in this tree (see the
+	 * handler above); keep the call commented so the block stays balanced. */
+	/*
 	WARN_ON(register_trace_android_vh_sound_usb_support_cpu_suspend(
 		vh_sound_usb_support_cpu_suspend, NULL));
+	 */
 	return 0;
 }
 #endif

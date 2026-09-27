@@ -15,7 +15,10 @@ ccflags-y += -I$(srctree)/drivers/iommu \
 
 ccflags-$(CONFIG_DEBUG_FS) += -DCMDQ_MMPROFILE_SUPPORT
 
-ifeq ($(CONFIG_MICROTRUST_TEE_SUPPORT),m)
+# AGATE(5.10): was `ifeq (...,m)`, so a built-in (=y) kernel never got the
+# teei include dirs and cmdq_sec_mtee.h could not find teei_client_main.h.
+# Makefile.include already accepts both y and m.
+ifneq ($(filter y m,$(CONFIG_MICROTRUST_TEE_SUPPORT)),)
 include $(srctree)/drivers/tee/teei/Makefile.include
 endif
 
@@ -23,7 +26,10 @@ ifeq ($(CONFIG_TRUSTONIC_TEE_SUPPORT),m)
 include $(srctree)/drivers/tee/gud/Makefile.include
 endif
 
-ifeq ($(CONFIG_MTK_GZ_TZ_SYSTEM),m)
+# AGATE(5.10): this was `ifeq (...,m)` so the whole secure-cmdq block was
+# skipped in a built-in (=y) kernel and cmdq_sec_* stayed undefined.
+# Accept =y as well.
+ifneq ($(filter y m,$(CONFIG_MTK_GZ_TZ_SYSTEM)),)
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/geniezone/public
 ccflags-y += -DCMDQ_SECURE_MTEE_SUPPORT
 

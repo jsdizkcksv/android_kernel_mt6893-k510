@@ -1,5 +1,22 @@
 # SPDX-License-Identifier: GPL-2.0
 export MTK_PLATFORM := $(subst ",,$(CONFIG_MTK_PLATFORM))
+# AGATE(5.10): these three directories had `source .../Kconfig` in
+# drivers/misc/mediatek/Kconfig but no obj- line here, so nothing was ever
+# compiled and their symbols stayed undefined at vmlinux link time.
+# The 4.19 reference tree wires all three; match it.
+# AGATE(5.10): thermal/ is deliberately NOT built yet.  The 5.10 thermal tree
+# arrived as a skeleton (platform src/ + mt-plat thermal headers missing;
+# 888K vs 4.19's 6.2M) and does not compile.  mi_disp's only thermal use
+# (mi_cooler_brightness_clone.c) now goes through the mainline API via
+# MTK_THERMAL_WRAPPER_BYPASS=1, so nothing needs the mtk wrapper for a
+# first boot.  Re-add this line once the full stack is ported.
+#obj-$(CONFIG_MTK_THERMAL) += thermal/
+obj-$(CONFIG_MTK_ACCDET) += accdet/
+obj-$(CONFIG_MTK_LEDS) += leds/
+# AGATE(5.10): drivers/misc/mediatek/power/ was never reached from this
+# Makefile, so mtk_battery_intf.o (battery_get_*, reg_VBATON_UNDET, ...)
+# was never built.  power/ has its own MTK_PLATFORM-based subdir pick.
+obj-y += power/
 obj-$(CONFIG_MTK_BLOCK_IO_TRACER) += blocktag/
 obj-$(CONFIG_MTK_SLBC) += slbc/
 obj-$(CONFIG_MTK_CM_MGR) += cm_mgr/
@@ -15,6 +32,13 @@ obj-$(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) += sspm/
 obj-$(CONFIG_MTK_TINYSYS_SCMI) += tinysys_scmi/
 obj-$(CONFIG_MTK_TINYSYS_MCUPM_SUPPORT) += mcupm/
 obj-$(CONFIG_MTK_SUBPMIC_MISC) += subpmic/
+# AGATE(5.10): 4.19 wires this from drivers/misc/mediatek/Makefile; the 5.10
+# import kept the pmic/Kconfig source but lost the Makefile line, so nothing
+# under pmic/ was ever compiled (mt6360, mtk_battery_adc_intf, mt6359p/v1 ...).
+obj-$(CONFIG_MTK_PMIC_NEW_ARCH) += pmic/
+# AGATE(5.10): 4.19 enters base/ from here; the 5.10 import did not, which is
+# why base/power/** (clkbuf_v1, ppm_v3, pbm_v4) was never compiled.
+obj-y += base/
 obj-$(CONFIG_MMPROFILE) += mmp/
 obj-$(CONFIG_MTK_APUSYS_SUPPORT) += apusys/
 obj-$(CONFIG_MTK_TRUSTED_MEMORY_SUBSYSTEM) += trusted_mem/

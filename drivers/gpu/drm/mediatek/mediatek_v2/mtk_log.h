@@ -9,6 +9,13 @@
 #include <linux/kernel.h>
 #include <linux/sched/clock.h>
 
+/* AGATE(5.10): mi_disp does not define pr_fmt, so the token would stay
+ * literal inside the DDP* macros below and the call would get one argument
+ * too many.  Provide the standard empty fallback. */
+#ifndef pr_fmt
+#define pr_fmt(fmt) fmt
+#endif
+
 #if IS_ENABLED(CONFIG_MTK_AEE_FEATURE)
 #include <aee.h>
 #endif

@@ -40,7 +40,11 @@ void ccci_scp_md_state_sync(int md_state)
 	struct ccci_fsm_ctl *ctl = fsm_get_entity_by_md_id(ccci_scp_ctl.md_id);
 
 	if (ctl)
+#ifdef CCCI_KMODULE_ENABLE
 		schedule_work(&ctl->scp_ctl->scp_md_state_sync_work);
+#else
+		schedule_work(&ctl->scp_ctl.scp_md_state_sync_work);
+#endif
 	else
 		schedule_work(&ccci_scp_ctl.scp_md_state_sync_work);
 }

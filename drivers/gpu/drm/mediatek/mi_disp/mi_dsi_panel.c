@@ -44,7 +44,11 @@ int ishasCalibed = 0;
 #define DEFAULT_MAX_BRIGHTNESS_CLONE 8191
 #define DEFAULT_MAX_BRIGHTNESS  2047
 
-extern void mipi_dsi_dcs_write_gce2(struct mtk_dsi *dsi, struct cmdq_pkt *dummy,
+/* AGATE(5.10): the v1 top-level mtk_dsi.c (which defined
+ * mipi_dsi_dcs_write_gce) is not compiled when CONFIG_DRM_MEDIATEK_V2=y.
+ * mediatek_v2/mtk_dsi.c exposes the same helper as mipi_dsi_dcs_write_gce(),
+ * with an identical signature. */
+extern void mipi_dsi_dcs_write_gce(struct mtk_dsi *dsi, struct cmdq_pkt *dummy,
 					  const void *data, size_t len);
 
 bool is_backlight_set_skip(struct mtk_dsi *dsi, u32 bl_lvl)
@@ -77,11 +81,11 @@ bool dsi_panel_initialized(struct drm_panel *panel)
 
 void display_utc_time_marker(char *annotation)
 {
-	struct timespec ts;
+	struct timespec64 ts;
 	struct rtc_time tm;
 
-	getnstimeofday(&ts);
-	rtc_time_to_tm(ts.tv_sec, &tm);
+	ktime_get_real_ts64(&ts);
+	rtc_time64_to_tm(ts.tv_sec, &tm);
 	pr_info("%s: %d-%02d-%02d %02d:%02d:%02d.%09lu UTC\n",
 		annotation, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
 		tm.tm_hour, tm.tm_min, tm.tm_sec, ts.tv_nsec);
@@ -1980,9 +1984,9 @@ int mi_dsi_panel_set_disp_param(struct mtk_dsi *dsi, struct disp_feature_ctl *ct
 				mutex_lock(&private->commit.lock);
 			mtk_drm_idlemgr_kick(__func__, dsi->encoder.crtc, 0);
 			if (ctl->feature_val == DOZE_TO_NORMAL) {
-				panel_ext->funcs->doze_disable(dsi->panel, dsi, mipi_dsi_dcs_write_gce2, NULL);
+				panel_ext->funcs->doze_disable(dsi->panel, dsi, mipi_dsi_dcs_write_gce, NULL);
 			} else {
-				panel_ext->funcs->doze_enable(dsi->panel, dsi, mipi_dsi_dcs_write_gce2, NULL);
+				panel_ext->funcs->doze_enable(dsi->panel, dsi, mipi_dsi_dcs_write_gce, NULL);
 			}
 			if (private)
 				mutex_unlock(&private->commit.lock);

@@ -168,7 +168,7 @@ static DEFINE_MUTEX(vcp_pw_clk_mutex);
 static DEFINE_MUTEX(vcp_A_notify_mutex);
 static DEFINE_MUTEX(vcp_feature_mutex);
 
-char *core_ids[VCP_CORE_TOTAL] = {"VCP A"};
+char *vcp_core_ids[VCP_CORE_TOTAL] = {"VCP A"};
 DEFINE_SPINLOCK(vcp_awake_spinlock);
 struct vcp_ipi_irq {
 	const char *name;
@@ -692,9 +692,9 @@ uint32_t vcp_wait_ready_sync(enum feature_id id)
 		if (i > VCP_SYNC_TIMEOUT_MS) {
 			vcp_dump_last_regs(1);
 			for (j = 0; j < NUM_FEATURE_ID; j++)
-				if (feature_table[j].enable)
+				if (vcp_feature_table[j].enable)
 					pr_info("[VCP] Active feature id %d cnt\n",
-						j, feature_table[j].enable);
+						j, vcp_feature_table[j].enable);
 			mtk_smi_dbg_hang_detect("VCP");
 			if (vcp_ee_enable)
 				vcp_aee_print("wait ready timeout id %d\n", id);
@@ -817,7 +817,7 @@ void vcp_disable_pm_clk(enum feature_id id)
 	if (pwclkcnt < 0) {
 		for (i = 0; i < NUM_FEATURE_ID; i++)
 			pr_info("[VCP][Warning] %s Check feature id %d enable cnt %d\n",
-				__func__, feature_table[i].feature, feature_table[i].enable);
+				__func__, vcp_feature_table[i].feature, vcp_feature_table[i].enable);
 		pwclkcnt = 0;
 	}
 	mutex_unlock(&vcp_pw_clk_mutex);
@@ -1065,64 +1065,64 @@ static inline ssize_t vcp_A_reg_status_show(struct device *kobj
 
 	vcp_dump_last_regs(mmup_enable_count());
 	len += scnprintf(buf + len, PAGE_SIZE - len,
-		"c0_status = %08x\n", c0_m->status);
+		"c0_status = %08x\n", vcp_c0_m->status);
 	len += scnprintf(buf + len, PAGE_SIZE - len,
-		"c0_pc = %08x\n", c0_m->pc);
+		"c0_pc = %08x\n", vcp_c0_m->pc);
 	len += scnprintf(buf + len, PAGE_SIZE - len,
-		"c0_lr = %08x\n", c0_m->lr);
+		"c0_lr = %08x\n", vcp_c0_m->lr);
 	len += scnprintf(buf + len, PAGE_SIZE - len,
-		"c0_sp = %08x\n", c0_m->sp);
+		"c0_sp = %08x\n", vcp_c0_m->sp);
 	len += scnprintf(buf + len, PAGE_SIZE - len,
-		"c0_pc_latch = %08x\n", c0_m->pc_latch);
+		"c0_pc_latch = %08x\n", vcp_c0_m->pc_latch);
 	len += scnprintf(buf + len, PAGE_SIZE - len,
-		"c0_lr_latch = %08x\n", c0_m->lr_latch);
+		"c0_lr_latch = %08x\n", vcp_c0_m->lr_latch);
 	len += scnprintf(buf + len, PAGE_SIZE - len,
-		"c0_sp_latch = %08x\n", c0_m->sp_latch);
+		"c0_sp_latch = %08x\n", vcp_c0_m->sp_latch);
 	if (!vcpreg.twohart)
 		goto core1;
 	len += scnprintf(buf + len, PAGE_SIZE - len,
-		"c0_t1_pc = %08x\n", c0_t1_m->pc);
+		"c0_t1_pc = %08x\n", vcp_c0_t1_m->pc);
 	len += scnprintf(buf + len, PAGE_SIZE - len,
-		"c0_t1_lr = %08x\n", c0_t1_m->lr);
+		"c0_t1_lr = %08x\n", vcp_c0_t1_m->lr);
 	len += scnprintf(buf + len, PAGE_SIZE - len,
-		"c0_t1_sp = %08x\n", c0_t1_m->sp);
+		"c0_t1_sp = %08x\n", vcp_c0_t1_m->sp);
 	len += scnprintf(buf + len, PAGE_SIZE - len,
-		"c0_t1_pc_latch = %08x\n", c0_t1_m->pc_latch);
+		"c0_t1_pc_latch = %08x\n", vcp_c0_t1_m->pc_latch);
 	len += scnprintf(buf + len, PAGE_SIZE - len,
-		"c0_t1_lr_latch = %08x\n", c0_t1_m->lr_latch);
+		"c0_t1_lr_latch = %08x\n", vcp_c0_t1_m->lr_latch);
 	len += scnprintf(buf + len, PAGE_SIZE - len,
-		"c0_t1_sp_latch = %08x\n", c0_t1_m->sp_latch);
+		"c0_t1_sp_latch = %08x\n", vcp_c0_t1_m->sp_latch);
 core1:
 	if (vcpreg.core_nums == 1)
 		goto end;
 	len += scnprintf(buf + len, PAGE_SIZE - len,
-		"c1_status = %08x\n", c1_m->status);
+		"c1_status = %08x\n", vcp_c1_m->status);
 	len += scnprintf(buf + len, PAGE_SIZE - len,
-		"c1_pc = %08x\n", c1_m->pc);
+		"c1_pc = %08x\n", vcp_c1_m->pc);
 	len += scnprintf(buf + len, PAGE_SIZE - len,
-		"c1_lr = %08x\n", c1_m->lr);
+		"c1_lr = %08x\n", vcp_c1_m->lr);
 	len += scnprintf(buf + len, PAGE_SIZE - len,
-		"c1_sp = %08x\n", c1_m->sp);
+		"c1_sp = %08x\n", vcp_c1_m->sp);
 	len += scnprintf(buf + len, PAGE_SIZE - len,
-		"c1_pc_latch = %08x\n", c1_m->pc_latch);
+		"c1_pc_latch = %08x\n", vcp_c1_m->pc_latch);
 	len += scnprintf(buf + len, PAGE_SIZE - len,
-		"c1_lr_latch = %08x\n", c1_m->lr_latch);
+		"c1_lr_latch = %08x\n", vcp_c1_m->lr_latch);
 	len += scnprintf(buf + len, PAGE_SIZE - len,
-		"c1_sp_latch = %08x\n", c1_m->sp_latch);
+		"c1_sp_latch = %08x\n", vcp_c1_m->sp_latch);
 	if (!vcpreg.twohart)
 		goto end;
 	len += scnprintf(buf + len, PAGE_SIZE - len,
-		"c1_t1_pc = %08x\n", c1_t1_m->pc);
+		"c1_t1_pc = %08x\n", vcp_c1_t1_m->pc);
 	len += scnprintf(buf + len, PAGE_SIZE - len,
-		"c1_t1_lr = %08x\n", c1_t1_m->lr);
+		"c1_t1_lr = %08x\n", vcp_c1_t1_m->lr);
 	len += scnprintf(buf + len, PAGE_SIZE - len,
-		"c1_t1_sp = %08x\n", c1_t1_m->sp);
+		"c1_t1_sp = %08x\n", vcp_c1_t1_m->sp);
 	len += scnprintf(buf + len, PAGE_SIZE - len,
-		"c1_t1_pc_latch = %08x\n", c1_t1_m->pc_latch);
+		"c1_t1_pc_latch = %08x\n", vcp_c1_t1_m->pc_latch);
 	len += scnprintf(buf + len, PAGE_SIZE - len,
-		"c1_t1_lr_latch = %08x\n", c1_t1_m->lr_latch);
+		"c1_t1_lr_latch = %08x\n", vcp_c1_t1_m->lr_latch);
 	len += scnprintf(buf + len, PAGE_SIZE - len,
-		"c1_t1_sp_latch = %08x\n", c1_t1_m->sp_latch);
+		"c1_t1_sp_latch = %08x\n", vcp_c1_t1_m->sp_latch);
 
 end:
 	return len;
@@ -1728,13 +1728,13 @@ void vcp_register_feature(enum feature_id id)
 {
 	uint32_t i;
 
-	/* because feature_table is a global variable,
+	/* because vcp_feature_table is a global variable,
 	 * use mutex lock to protect it from accessing in the same time
 	 */
 	mutex_lock(&vcp_feature_mutex);
 	for (i = 0; i < NUM_FEATURE_ID; i++) {
-		if (feature_table[i].feature == id)
-			feature_table[i].enable++;
+		if (vcp_feature_table[i].feature == id)
+			vcp_feature_table[i].enable++;
 	}
 	vcp_enable_pm_clk(id);
 	mutex_unlock(&vcp_feature_mutex);
@@ -1747,14 +1747,14 @@ void vcp_deregister_feature(enum feature_id id)
 
 	mutex_lock(&vcp_feature_mutex);
 	for (i = 0; i < NUM_FEATURE_ID; i++) {
-		if (feature_table[i].feature == id) {
-			if (feature_table[i].enable == 0) {
+		if (vcp_feature_table[i].feature == id) {
+			if (vcp_feature_table[i].enable == 0) {
 				pr_info("[VCP][Warning] %s unbalanced feature id %d enable cnt %d\n",
-					__func__, id, feature_table[i].enable);
+					__func__, id, vcp_feature_table[i].enable);
 				mutex_unlock(&vcp_feature_mutex);
 				return;
 			}
-			feature_table[i].enable--;
+			vcp_feature_table[i].enable--;
 		}
 	}
 	vcp_disable_pm_clk(id);
@@ -2196,7 +2196,7 @@ static int vcp_io_device_remove(struct platform_device *dev)
 	return 0;
 }
 
-void mbox_setup_pin_table(unsigned int mbox)
+static void mbox_setup_pin_table(unsigned int mbox)
 {
 	int i, last_ofs = 0, last_idx = 0, last_slot = 0, last_sz = 0;
 

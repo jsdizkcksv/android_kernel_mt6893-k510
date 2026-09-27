@@ -46,6 +46,13 @@ struct mtk_drm_private {
 	struct drm_atomic_state *suspend_state;
 
 	bool dma_parms_allocated;
+	/* AGATE(5.10): the 4.19 private struct carries the per-crtc
+	 * commit context; mi_disp uses private->commit.lock. */
+	struct {
+		struct drm_atomic_state *state;
+		struct work_struct work;
+		struct mutex lock;
+	} commit;
 };
 
 extern struct platform_driver mtk_ddp_driver;

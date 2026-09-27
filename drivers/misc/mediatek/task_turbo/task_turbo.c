@@ -38,9 +38,13 @@ LIST_HEAD(hmp_domains);
 #define SCHED_FEAT(name, enabled)	\
 	[__SCHED_FEAT_##name] = {0},
 
+#if IS_MODULE(CONFIG_MTK_TASK_TURBO)
+/* AGATE(5.10): keep the vendor override only for the module
+ * build; as a built-in the mainline definition must win. */
 struct static_key sched_feat_keys[__SCHED_FEAT_NR] = {
 #include "features.h"
 };
+#endif /* IS_MODULE(CONFIG_MTK_TASK_TURBO) */
 
 #undef SCHED_FEAT
 
@@ -99,7 +103,11 @@ struct static_key sched_feat_keys[__SCHED_FEAT_NR] = {
 #define RWSEM_WRITER_MASK	RWSEM_WRITER_LOCKED
 
 DEFINE_PER_CPU(struct hmp_domain *, hmp_cpu_domain);
+#if IS_MODULE(CONFIG_MTK_TASK_TURBO)
+/* AGATE(5.10): keep the vendor override only for the module
+ * build; as a built-in the mainline definition must win. */
 DEFINE_PER_CPU(unsigned long, cpu_scale) = SCHED_CAPACITY_SCALE;
+#endif /* IS_MODULE(CONFIG_MTK_TASK_TURBO) */
 
 static uint32_t latency_turbo = SUB_FEAT_LOCK | SUB_FEAT_BINDER |
 				SUB_FEAT_SCHED;
@@ -596,6 +604,9 @@ static void set_load_weight(struct task_struct *p, bool update_load)
 	}
 }
 
+#if IS_MODULE(CONFIG_MTK_TASK_TURBO)
+/* AGATE(5.10): keep the vendor override only for the module
+ * build; as a built-in the mainline definition must win. */
 int idle_cpu(int cpu)
 {
 	struct rq *rq = cpu_rq(cpu);
@@ -613,6 +624,7 @@ int idle_cpu(int cpu)
 
 	return 1;
 }
+#endif /* IS_MODULE(CONFIG_MTK_TASK_TURBO) */
 
 static void rwsem_stop_turbo_inherit(struct rw_semaphore *sem)
 {

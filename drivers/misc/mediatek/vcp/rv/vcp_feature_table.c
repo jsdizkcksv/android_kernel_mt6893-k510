@@ -9,7 +9,7 @@
 #include "vcp.h"
 
 /*vcp feature list*/
-struct vcp_feature_tb feature_table[NUM_FEATURE_ID] = {
+struct vcp_feature_tb vcp_feature_table[NUM_FEATURE_ID] = {
 	{
 		.feature	= RTOS_FEATURE_ID,
 		.freq		= 0,
@@ -35,4 +35,4 @@ struct vcp_feature_tb feature_table[NUM_FEATURE_ID] = {
 		.sys_id	= VCPSYS_CORE0,
 	},
 };
-EXPORT_SYMBOL(feature_table);
+EXPORT_SYMBOL(vcp_feature_table);

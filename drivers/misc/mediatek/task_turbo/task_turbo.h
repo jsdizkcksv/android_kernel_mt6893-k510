@@ -77,6 +77,9 @@ extern void list_sort(void *priv, struct list_head *head,
  * If a task goes up by ~10% and another task goes down by ~10% then
  * the relative distance between them is ~25%.)
  */
+#if IS_MODULE(CONFIG_MTK_TASK_TURBO)
+/* AGATE(5.10): keep the vendor override only for the module
+ * build; as a built-in the mainline definition must win. */
 const int sched_prio_to_weight[40] = {
  /* -20 */     88761,     71755,     56483,     46273,     36291,
  /* -15 */     29154,     23254,     18705,     14949,     11916,
@@ -87,6 +90,7 @@ const int sched_prio_to_weight[40] = {
  /*  10 */       110,        87,        70,        56,        45,
  /*  15 */        36,        29,        23,        18,        15,
 };
+#endif /* IS_MODULE(CONFIG_MTK_TASK_TURBO) */
 
 /*
  * Inverse (2^32/x) values of the sched_prio_to_weight[] array, precalculated.
@@ -95,6 +99,9 @@ const int sched_prio_to_weight[40] = {
  * precalculated inverse to speed up arithmetics by turning divisions
  * into multiplications:
  */
+#if IS_MODULE(CONFIG_MTK_TASK_TURBO)
+/* AGATE(5.10): keep the vendor override only for the module
+ * build; as a built-in the mainline definition must win. */
 const u32 sched_prio_to_wmult[40] = {
  /* -20 */     48388,     59856,     76040,     92818,    118348,
  /* -15 */    147320,    184698,    229616,    287308,    360437,
@@ -105,5 +112,6 @@ const u32 sched_prio_to_wmult[40] = {
  /*  10 */  39045157,  49367440,  61356676,  76695844,  95443717,
  /*  15 */ 119304647, 148102320, 186737708, 238609294, 286331153,
 };
+#endif /* IS_MODULE(CONFIG_MTK_TASK_TURBO) */
 
 #endif /* _PERF_TRACKER_H */

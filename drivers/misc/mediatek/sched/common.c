@@ -13,6 +13,9 @@ MODULE_LICENSE("GPL");
  *
  * Return: 1 if the CPU is currently idle. 0 otherwise.
  */
+#if IS_MODULE(CONFIG_MTK_SCHEDULER)
+/* AGATE(5.10): keep the vendor override only for the module
+ * build; as a built-in the mainline definition must win. */
 int idle_cpu(int cpu)
 {
 	struct rq *rq = cpu_rq(cpu);
@@ -30,6 +33,7 @@ int idle_cpu(int cpu)
 
 	return 1;
 }
+#endif /* IS_MODULE(CONFIG_MTK_SCHEDULER) */
 
 #if IS_ENABLED(CONFIG_MTK_CPUFREQ_SUGOV_EXT)
 /**

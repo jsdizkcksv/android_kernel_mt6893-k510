@@ -97,13 +97,12 @@ static int mi_disp_procfs_mipi_rw_open(struct inode *inode, struct file *file)
 }
 
 
-const struct file_operations mipi_rw_proc_fops = {
-	.owner   = THIS_MODULE,
-	.open    = mi_disp_procfs_mipi_rw_open,
-	.write   = mi_disp_procfs_mipi_rw_write,
-	.read    = seq_read,
-	.llseek  = seq_lseek,
-	.release = single_release,
+const struct proc_ops mipi_rw_proc_fops = {
+	.proc_open    = mi_disp_procfs_mipi_rw_open,
+	.proc_write   = mi_disp_procfs_mipi_rw_write,
+	.proc_read    = seq_read,
+	.proc_lseek   = seq_lseek,
+	.proc_release = single_release,
 };
 
 static int mi_disp_procfs_mipi_rw_init(void *d_display, int disp_id)

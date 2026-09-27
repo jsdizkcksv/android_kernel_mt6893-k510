@@ -1,11 +1,15 @@
-/* SPDX-License-Identifier: GPL-2.0-only */
+/* SPDX-License-Identifier: GPL-2.0 */
 /*
- * Copyright (c) 2015 MediaTek Inc.
- */
+ * Copyright (c) 2019 MediaTek Inc.
+*/
 
 #ifndef MTK_DRM_CRTC_H
 #define MTK_DRM_CRTC_H
 
+#include <linux/types.h>
+#include <linux/workqueue.h>
+#include <linux/wait.h>
+#include <linux/soc/mediatek/mtk-cmdq-ext.h>
 #include <drm/drm_crtc.h>
 #include "mtk_drm_ddp_comp.h"
 #include "mtk_drm_plane.h"
@@ -700,25 +704,219 @@ struct mtk_drm_crtc {
 
 	unsigned int avail_modes_num;
 	struct drm_display_mode *avail_modes;
-	struct timeval vblank_time;
+	struct timespec64 vblank_time;
 	unsigned int max_fps;
 
 	bool mipi_hopping_sta;
 	bool panel_osc_hopping_sta;
 	bool vblank_en;
 
-#define MTK_LUT_SIZE	512
-#define MTK_MAX_BPC	10
-#define MTK_MIN_BPC	3
+	atomic_t already_config;
 
+	bool layer_rec_en;
+	unsigned int fps_change_index;
+
+	wait_queue_head_t state_wait_queue;
+	bool crtc_blank;
+	struct mutex blank_lock;
+
+	wait_queue_head_t present_fence_wq;
+	struct task_struct *pf_release_thread;
+	atomic_t pf_event;
+
+	wait_queue_head_t sf_present_fence_wq;
+	struct task_struct *sf_pf_release_thread;
+	atomic_t sf_pf_event;
+
+	/*capture write back ctx*/
+	struct mutex cwb_lock;
+	struct mtk_cwb_info *cwb_info;
+	struct task_struct *cwb_task;
+	wait_queue_head_t cwb_wq;
+	atomic_t cwb_task_active;
+
+	ktime_t eof_time;
+	struct task_struct *signal_present_fece_task;
+	struct cmdq_cb_data cb_data;
+	atomic_t cmdq_done;
+	wait_queue_head_t signal_fence_task_wq;
+};
+
+struct mtk_crtc_state {
+	struct drm_crtc_state base;
+	struct cmdq_pkt *cmdq_handle;
+
+	bool pending_config;
+	unsigned int pending_width;
+	unsigned int pending_height;
+	unsigned int pending_vrefresh;
+
+	struct mtk_lye_ddp_state lye_state;
+	struct mtk_rect rsz_src_roi;
+	struct mtk_rect rsz_dst_roi;
+	struct mtk_rsz_param rsz_param[2];
+	atomic_t plane_enabled_num;
+
+	/* property */
+	unsigned int prop_val[CRTC_PROP_MAX];
+	bool doze_changed;
+};
+
+struct mtk_cmdq_cb_data {
+	struct drm_crtc_state		*state;
+	struct cmdq_pkt			*cmdq_handle;
+	struct drm_crtc			*crtc;
+	unsigned int misc;
+};
+
+extern unsigned int te_cnt;
+
+int mtk_drm_crtc_enable_vblank(struct drm_device *drm, unsigned int pipe);
+void mtk_drm_crtc_disable_vblank(struct drm_device *drm, unsigned int pipe);
+bool mtk_crtc_get_vblank_timestamp(struct drm_device *dev, unsigned int pipe,
+				 int *max_error,
+				 ktime_t *vblank_time,
+				 bool in_vblank_irq);
 void mtk_drm_crtc_commit(struct drm_crtc *crtc);
 void mtk_crtc_ddp_irq(struct drm_crtc *crtc, struct mtk_ddp_comp *comp);
+void mtk_crtc_vblank_irq(struct drm_crtc *crtc);
 int mtk_drm_crtc_create(struct drm_device *drm_dev,
-			const enum mtk_ddp_comp_id *path,
-			unsigned int path_len);
-int mtk_drm_crtc_plane_check(struct drm_crtc *crtc, struct drm_plane *plane,
-			     struct mtk_plane_state *state);
-void mtk_drm_crtc_async_update(struct drm_crtc *crtc, struct drm_plane *plane,
-			       struct drm_plane_state *plane_state);
+			const struct mtk_crtc_path_data *path_data);
+void mtk_drm_crtc_plane_update(struct drm_crtc *crtc, struct drm_plane *plane,
+			       struct mtk_plane_state *state);
+void mtk_drm_crtc_plane_disable(struct drm_crtc *crtc, struct drm_plane *plane,
+			       struct mtk_plane_state *state);
+
+void mtk_drm_crtc_dump(struct drm_crtc *crtc);
+void mtk_drm_crtc_analysis(struct drm_crtc *crtc);
+bool mtk_crtc_is_frame_trigger_mode(struct drm_crtc *crtc);
+void mtk_crtc_wait_frame_done(struct mtk_drm_crtc *mtk_crtc,
+			      struct cmdq_pkt *cmdq_handle,
+			      enum CRTC_DDP_PATH ddp_path,
+			      int clear_event);
+
+struct mtk_ddp_comp *mtk_ddp_comp_request_output(struct mtk_drm_crtc *mtk_crtc);
+
+/* get fence */
+int mtk_drm_crtc_getfence_ioctl(struct drm_device *dev, void *data,
+				struct drm_file *file_priv);
+int mtk_drm_crtc_get_sf_fence_ioctl(struct drm_device *dev, void *data,
+				    struct drm_file *file_priv);
+
+long mtk_crtc_wait_status(struct drm_crtc *crtc, bool status, long timeout);
+void mtk_crtc_cwb_path_disconnect(struct drm_crtc *crtc);
+int mtk_crtc_path_switch(struct drm_crtc *crtc, unsigned int path_sel,
+			 int need_lock);
+void mtk_need_vds_path_switch(struct drm_crtc *crtc);
+
+void mtk_drm_crtc_first_enable(struct drm_crtc *crtc);
+void mtk_drm_crtc_enable(struct drm_crtc *crtc);
+void mtk_drm_crtc_disable(struct drm_crtc *crtc, bool need_wait);
+bool mtk_crtc_with_sub_path(struct drm_crtc *crtc, unsigned int ddp_mode);
+
+void mtk_crtc_ddp_prepare(struct mtk_drm_crtc *mtk_crtc);
+void mtk_crtc_ddp_unprepare(struct mtk_drm_crtc *mtk_crtc);
+void mtk_crtc_stop(struct mtk_drm_crtc *mtk_crtc, bool need_wait);
+void mtk_crtc_connect_default_path(struct mtk_drm_crtc *mtk_crtc);
+void mtk_crtc_disconnect_default_path(struct mtk_drm_crtc *mtk_crtc);
+void mtk_crtc_config_default_path(struct mtk_drm_crtc *mtk_crtc);
+void mtk_crtc_restore_plane_setting(struct mtk_drm_crtc *mtk_crtc);
+bool mtk_crtc_set_status(struct drm_crtc *crtc, bool status);
+int mtk_crtc_attach_addon_path_comp(struct drm_crtc *crtc,
+	const struct mtk_addon_module_data *module_data, bool is_attach);
+void mtk_crtc_connect_addon_module(struct drm_crtc *crtc);
+void mtk_crtc_disconnect_addon_module(struct drm_crtc *crtc);
+int mtk_crtc_gce_flush(struct drm_crtc *crtc, void *gce_cb, void *cb_data,
+			struct cmdq_pkt *cmdq_handle);
+struct cmdq_pkt *mtk_crtc_gce_commit_begin(struct drm_crtc *crtc);
+void mtk_crtc_pkt_create(struct cmdq_pkt **cmdq_handle,
+	struct drm_crtc *crtc, struct cmdq_client *cl);
+int mtk_crtc_get_mutex_id(struct drm_crtc *crtc, unsigned int ddp_mode,
+			  enum mtk_ddp_comp_id find_comp);
+void mtk_crtc_disconnect_path_between_component(struct drm_crtc *crtc,
+						unsigned int ddp_mode,
+						enum mtk_ddp_comp_id prev,
+						enum mtk_ddp_comp_id next,
+						struct cmdq_pkt *cmdq_handle);
+void mtk_crtc_connect_path_between_component(struct drm_crtc *crtc,
+					     unsigned int ddp_mode,
+					     enum mtk_ddp_comp_id prev,
+					     enum mtk_ddp_comp_id next,
+					     struct cmdq_pkt *cmdq_handle);
+int mtk_crtc_find_comp(struct drm_crtc *crtc, unsigned int ddp_mode,
+		       enum mtk_ddp_comp_id comp_id);
+int mtk_crtc_find_next_comp(struct drm_crtc *crtc, unsigned int ddp_mode,
+			    enum mtk_ddp_comp_id comp_id);
+int mtk_crtc_find_prev_comp(struct drm_crtc *crtc, unsigned int ddp_mode,
+		enum mtk_ddp_comp_id comp_id);
+void mtk_drm_fake_vsync_switch(struct drm_crtc *crtc, bool enable);
+void mtk_crtc_check_trigger(struct mtk_drm_crtc *mtk_crtc, bool delay,
+		bool need_lock);
+
+bool mtk_crtc_is_dc_mode(struct drm_crtc *crtc);
+void mtk_crtc_clear_wait_event(struct drm_crtc *crtc);
+void mtk_crtc_hw_block_ready(struct drm_crtc *crtc);
+int mtk_crtc_lcm_ATA(struct drm_crtc *crtc);
+int mtk_crtc_mipi_freq_switch(struct drm_crtc *crtc, unsigned int en,
+			unsigned int userdata);
+int mtk_crtc_osc_freq_switch(struct drm_crtc *crtc, unsigned int en,
+			unsigned int userdata);
+int mtk_crtc_enter_tui(struct drm_crtc *crtc);
+int mtk_crtc_exit_tui(struct drm_crtc *crtc);
+
+
+struct drm_display_mode *mtk_drm_crtc_avail_disp_mode(struct drm_crtc *crtc,
+	unsigned int idx);
+unsigned int mtk_drm_primary_frame_bw(struct drm_crtc *crtc);
+
+unsigned int mtk_drm_primary_display_get_debug_state(
+	struct mtk_drm_private *priv, char *stringbuf, int buf_len);
+
+bool mtk_crtc_with_trigger_loop(struct drm_crtc *crtc);
+void mtk_crtc_stop_trig_loop(struct drm_crtc *crtc);
+void mtk_crtc_start_trig_loop(struct drm_crtc *crtc);
+
+#if defined(CONFIG_MACH_MT6873) || defined(CONFIG_MACH_MT6853) \
+	|| defined(CONFIG_MACH_MT6833)
+bool mtk_crtc_with_sodi_loop(struct drm_crtc *crtc);
+void mtk_crtc_stop_sodi_loop(struct drm_crtc *crtc);
+void mtk_crtc_start_sodi_loop(struct drm_crtc *crtc);
+#endif
+
+void mtk_crtc_change_output_mode(struct drm_crtc *crtc, int aod_en);
+int mtk_crtc_user_cmd(struct drm_crtc *crtc, struct mtk_ddp_comp *comp,
+		unsigned int cmd, void *params);
+unsigned int mtk_drm_dump_wk_lock(struct mtk_drm_private *priv,
+	char *stringbuf, int buf_len);
+char *mtk_crtc_index_spy(int crtc_index);
+bool mtk_drm_get_hdr_property(void);
+int mtk_drm_aod_setbacklight(struct drm_crtc *crtc, unsigned int level);
+
+int mtk_drm_crtc_wait_blank(struct mtk_drm_crtc *mtk_crtc);
+void mtk_drm_crtc_init_para(struct drm_crtc *crtc);
+void mtk_drm_layer_dispatch_to_dual_pipe(
+	struct mtk_plane_state *plane_state,
+	struct mtk_plane_state *plane_state_l,
+	struct mtk_plane_state *plane_state_r,
+	unsigned int w);
+void mtk_crtc_dual_layer_config(struct mtk_drm_crtc *mtk_crtc,
+		struct mtk_ddp_comp *comp, unsigned int idx,
+		struct mtk_plane_state *plane_state, struct cmdq_pkt *cmdq_handle);
+unsigned int dual_pipe_comp_mapping(unsigned int comp_id);
+int mtk_drm_crtc_set_panel_hbm(struct drm_crtc *crtc, bool en);
+int mtk_drm_crtc_hbm_wait(struct drm_crtc *crtc, bool en);
+/* ********************* Legacy DISP API *************************** */
+unsigned int DISP_GetScreenWidth(void);
+unsigned int DISP_GetScreenHeight(void);
+
+void mtk_crtc_disable_secure_state(struct drm_crtc *crtc);
+int mtk_crtc_check_out_sec(struct drm_crtc *crtc);
+struct golden_setting_context *
+	__get_golden_setting_context(struct mtk_drm_crtc *mtk_crtc);
+/***********************  PanelMaster  ********************************/
+void mtk_crtc_start_for_pm(struct drm_crtc *crtc);
+void mtk_crtc_stop_for_pm(struct mtk_drm_crtc *mtk_crtc, bool need_wait);
+bool mtk_crtc_frame_buffer_existed(void);
+int m4u_sec_init(void);
 
 #endif /* MTK_DRM_CRTC_H */
