@@ -16,6 +16,9 @@
 #include <drm/drmP.h>
 #include <drm/drm_mipi_dsi.h>
 #include <drm/drm_panel.h>
+#include <drm/drm_modes.h>
+#include <drm/drm_connector.h>
+#include <drm/drm_device.h>
 
 #include <linux/gpio/consumer.h>
 #include <linux/regulator/consumer.h>
@@ -475,7 +478,6 @@ static const struct drm_display_mode default_mode = {
 	.vsync_start = 2400 + 20,
 	.vsync_end = 2400 + 20 + 2,
 	.vtotal = 2400 + 20 + 2 + 8,
-	.vrefresh = 60,
 };
 
 static const struct drm_display_mode performance_mode = {
@@ -488,7 +490,6 @@ static const struct drm_display_mode performance_mode = {
 	.vsync_start = 2400 + 20,
 	.vsync_end = 2400 + 20 + 2,
 	.vtotal = 2400 + 20 + 2 + 8,
-	.vrefresh = 120,
 };
 
 #if defined(CONFIG_MTK_PANEL_EXT)
@@ -644,11 +645,6 @@ static int lcm_setbacklight_control(struct drm_panel *panel, unsigned int level)
 
 	char bl_tb[] = {0x51, 0x07, 0xff};
 	int ret = 0;
-
-	if (!panel->connector) {
-		pr_err("%s, the connector is null\n", __func__);
-		return -1;
-	}
 
 	if (level > 8) {
 		bl_tb0[1] = (level >> 8) & 0xFF;
@@ -2308,39 +2304,39 @@ struct panel_desc {
 	} delay;
 };
 
-static int lcm_get_modes(struct drm_panel *panel)
+static int lcm_get_modes(struct drm_panel *panel, struct drm_connector *connector)
 {
 	struct drm_display_mode *mode;
 	struct drm_display_mode *mode2;
 
 
-	mode = drm_mode_duplicate(panel->drm, &default_mode);
+	mode = drm_mode_duplicate(connector->dev, &default_mode);
 	if (!mode) {
-		dev_err(panel->drm->dev, "failed to add mode %ux%ux@%u\n",
+		dev_err(connector->dev->dev, "failed to add mode %ux%ux@%u\n",
 			default_mode.hdisplay, default_mode.vdisplay,
-			default_mode.vrefresh);
+			drm_mode_vrefresh(&default_mode));
 		return -ENOMEM;
 	}
 
 	drm_mode_set_name(mode);
 	mode->type = DRM_MODE_TYPE_DRIVER | DRM_MODE_TYPE_PREFERRED;
-	drm_mode_probed_add(panel->connector, mode);
+	drm_mode_probed_add(connector, mode);
 
-	mode2 = drm_mode_duplicate(panel->drm, &performance_mode);
+	mode2 = drm_mode_duplicate(connector->dev, &performance_mode);
 	if (!mode2) {
-		dev_err(panel->drm->dev, "failed to add mode %ux%ux@%u\n",
+		dev_err(connector->dev->dev, "failed to add mode %ux%ux@%u\n",
 			performance_mode.hdisplay,
 			performance_mode.vdisplay,
-			performance_mode.vrefresh);
+			drm_mode_vrefresh(&performance_mode));
 		return -ENOMEM;
 	}
 
 	drm_mode_set_name(mode2);
 	mode2->type = DRM_MODE_TYPE_DRIVER;
-	drm_mode_probed_add(panel->connector, mode2);
+	drm_mode_probed_add(connector, mode2);
 
-	panel->connector->display_info.width_mm = 71;
-	panel->connector->display_info.height_mm = 153;
+	connector->display_info.width_mm = 71;
+	connector->display_info.height_mm = 153;
 
 	return 1;
 }
@@ -2423,20 +2419,14 @@ static int lcm_probe(struct mipi_dsi_device *dsi)
 	ctx->prepared = true;
 	ctx->enabled = true;
 
-	drm_panel_init(&ctx->panel);
-	ctx->panel.dev = dev;
-	ctx->panel.funcs = &lcm_drm_funcs;
+	drm_panel_init(&ctx->panel, dev, &lcm_drm_funcs,
+		       DRM_MODE_CONNECTOR_DSI);
 	ctx->panel_info = panel_name;
 	ctx->panel.panel_initialized = true;
 	ctx->dynamic_fps = 60;
 
-	ret = drm_panel_add(&ctx->panel);
-	if (ret < 0) {
-		pr_err("drm_panel_add fail, error: %d\n", ret);
-		return ret;
-	} else {
-		pr_err("drm_panel_add success\n");
-	}
+	drm_panel_add(&ctx->panel);
+	pr_info("drm_panel_add success\n");
 
 	ret = mipi_dsi_attach(dsi);
 	if (ret < 0)
