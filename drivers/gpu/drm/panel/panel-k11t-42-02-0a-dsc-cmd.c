@@ -34,8 +34,8 @@
 #define CONFIG_MTK_PANEL_EXT
 #if defined(CONFIG_MTK_PANEL_EXT)
 #include "../mediatek/mtk_panel_ext.h"
-#include "../mediatek/mtk_log.h"
-#include "../mediatek/mtk_drm_graphics_base.h"
+#include "../mediatek/mediatek_v2/mtk_log.h"
+#include "../mediatek/mediatek_v2/mtk_drm_graphics_base.h"
 #endif
 #include "../mediatek/mi_disp/mi_disp_calib.h"
 
