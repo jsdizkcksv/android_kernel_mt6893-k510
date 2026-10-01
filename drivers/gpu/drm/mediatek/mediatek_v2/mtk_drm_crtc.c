@@ -12853,3 +12853,61 @@ void mtk_crtc_mml_racing_stop_sync(struct drm_crtc *crtc, struct cmdq_pkt *_cmdq
 		cmdq_pkt_destroy(cmdq_handle);
 	}
 }
+
+
+/*
+ * AGATE(5.10): 4.19's mtk_drm_crtc_fps_switch_mode_wait().
+ *
+ * Two differences from 4.19, both because v2 implements things
+ * differently:
+ *  - 4.19 took the crtc from mtkfb_get_drmcrtc(); v2 has no such helper,
+ *    so take crtc0 from the global drm_dev, the same way
+ *    mtk_ddic_dsi_send_cmd() does;
+ *  - 4.19 sent io_cmd(DSI_FPS_SWITCH_MODE_WAIT), an enum v2 does not
+ *    have.  In 4.19 that command shared a single case with DSI_HBM_WAIT,
+ *    and v2 kept DSI_HBM_WAIT with a line-for-line identical body, so use
+ *    it directly -- the wait semantics are unchanged.
+ *
+ * The wait count comes from the panel params' fps_switch_en_time, which
+ * came back with the header merge.
+ */
+int mtk_drm_crtc_fps_switch_mode_wait(void)
+{
+	struct drm_crtc *crtc;
+	struct mtk_panel_params *panel_ext;
+	struct mtk_drm_crtc *mtk_crtc;
+	struct mtk_ddp_comp *comp;
+	unsigned int wait_count = 0;
+
+	if (IS_ERR_OR_NULL(drm_dev))
+		return -EINVAL;
+
+	crtc = list_first_entry(&(drm_dev)->mode_config.crtc_list,
+			typeof(*crtc), head);
+	if (IS_ERR_OR_NULL(crtc))
+		return -EINVAL;
+
+	panel_ext = mtk_drm_get_lcm_ext_params(crtc);
+	mtk_crtc = to_mtk_crtc(crtc);
+	comp = mtk_ddp_comp_request_output(mtk_crtc);
+
+	if (!(comp && comp->funcs && comp->funcs->io_cmd))
+		return -EINVAL;
+
+	if (!panel_ext)
+		return -EINVAL;
+
+	wait_count = panel_ext->fps_switch_en_time;
+
+	DDPINFO("LCM fps switch mode wait %u-TE\n", wait_count);
+
+	while (wait_count) {
+		mtk_drm_idlemgr_kick(__func__, crtc, 0);
+		wait_count--;
+		DDPINFO("LCM fps switch mode wait begin\n");
+		comp->funcs->io_cmd(comp, NULL, DSI_HBM_WAIT, NULL);
+		DDPINFO("LCM fps switch mode wait end\n");
+	}
+	DDPINFO("LCM fps switch mode wait end\n");
+	return 0;
+}

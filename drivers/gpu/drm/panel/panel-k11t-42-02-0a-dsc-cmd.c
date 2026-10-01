@@ -36,7 +36,7 @@
 
 #define CONFIG_MTK_PANEL_EXT
 #if defined(CONFIG_MTK_PANEL_EXT)
-#include "../mediatek/mtk_panel_ext.h"
+#include "../mediatek/mediatek_v2/mtk_panel_ext.h"
 #include "../mediatek/mediatek_v2/mtk_log.h"
 #include "../mediatek/mediatek_v2/mtk_drm_graphics_base.h"
 #endif
@@ -672,7 +672,7 @@ static int lcm_setbacklight_control(struct drm_panel *panel, unsigned int level)
 }
 
 static int mtk_panel_ext_param_set(struct drm_panel *panel,
-			 unsigned int mode)
+			 struct drm_connector *connector, unsigned int mode)
 {
 	struct mtk_panel_ext *ext = find_panel_ext(panel);
 	int ret = 0;
@@ -761,8 +761,8 @@ static void mode_switch_120_to_60(struct drm_panel *panel,
 	}
 }
 
-static int mode_switch(struct drm_panel *panel, unsigned int cur_mode,
-		unsigned int dst_mode, enum MTK_PANEL_MODE_SWITCH_STAGE stage)
+static int mode_switch(struct drm_panel *panel, struct drm_connector *connector,
+		unsigned int cur_mode, unsigned int dst_mode, enum MTK_PANEL_MODE_SWITCH_STAGE stage)
 {
 	int ret = 0;
 	struct lcm *ctx;

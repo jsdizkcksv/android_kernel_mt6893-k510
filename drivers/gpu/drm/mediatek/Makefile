@@ -2,8 +2,10 @@
 # AGATE: mi_disp/*.o are built from this directory (composite target
 # below), so they need the include set that mediatek_v2/Makefile only sets
 # for its own subdir.  drivers/gpu/drm/mediatek must come before
-# mediatek_v2/ so mi_disp resolves mtk_drm_crtc.h / mtk_panel_ext.h to the
-# full top-level headers rather than the slim v2 copies.
+# mediatek_v2/ so mi_disp resolves mtk_drm_crtc.h to the full top-level
+# header rather than the slim v2 copy.  mtk_panel_ext.h no longer differs
+# between the two directories: the top-level one forwards to the v2 header,
+# so both paths describe one ABI.
 ccflags-y += -I$(srctree)/drivers/gpu/drm/mediatek
 ccflags-y += -I$(srctree)/drivers/gpu/drm/mediatek/mediatek_v2/
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/include

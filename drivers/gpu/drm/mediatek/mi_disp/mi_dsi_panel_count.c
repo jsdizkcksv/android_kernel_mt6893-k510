@@ -52,9 +52,11 @@ void dsi_panel_state_count(struct lcm *lcm, int enable)
 		ktime_t boot_time;
 		u32 delta_days = 0;
 		u64 jiffies_time = 0;
-		/* AGATE(5.10): 5.10 removed `struct timespec` and getnstimeofday();
- * this file only reads .tv_sec, so use the timespec64/ktime_get_real_ts64
- * idiom instead. */
+		/*
+		 * AGATE(5.10): 5.10 removed `struct timespec` and getnstimeofday();
+		 * this file only reads .tv_sec, so use the timespec64 /
+		 * ktime_get_real_ts64 idiom instead.
+		 */
 		struct timespec64 rtctime;
 
 		off_times++;

@@ -3166,8 +3166,10 @@ struct drm_mtk_layering_info_32 {
 	int gles_head[LYE_CRTC];
 	int gles_tail[LYE_CRTC];
 	int hrt_num;
+#ifndef CONFIG_DRM_MEDIATEK_LEGACY
 	uint32_t disp_idx;
 	uint32_t disp_list;
+#endif
 	/* res_idx: SF/HWC selects which resolution to use */
 	int res_idx;
 	uint32_t hrt_weight;
@@ -3193,8 +3195,10 @@ int mtk_layering_rule_ioctl_compat(struct file *file, unsigned int cmd,
 		data.gles_tail[i] = data32.gles_tail[i];
 	}
 	data.hrt_num = data32.hrt_num;
+#ifndef CONFIG_DRM_MEDIATEK_LEGACY
 	data.disp_idx = data32.disp_idx;
 	data.disp_list = data32.disp_list;
+#endif
 	data.res_idx = data32.res_idx;
 	data.hrt_weight = data32.hrt_weight;
 	data.hrt_idx = data32.hrt_idx;
@@ -3213,8 +3217,10 @@ int mtk_layering_rule_ioctl_compat(struct file *file, unsigned int cmd,
 		data32.gles_tail[i] = data.gles_tail[i];
 	}
 	data32.hrt_num = data.hrt_num;
+#ifndef CONFIG_DRM_MEDIATEK_LEGACY
 	data32.disp_idx = data.disp_idx;
 	data32.disp_list = data.disp_list;
+#endif
 	data32.res_idx = data.res_idx;
 	data32.hrt_weight = data.hrt_weight;
 	data32.hrt_idx = data.hrt_idx;

@@ -952,6 +952,181 @@ int mtk_ddic_dsi_send_cmd(struct mtk_ddic_dsi_msg *cmd_msg,
 	return ret;
 }
 
+/*
+ * AGATE(5.10): 4.19's mtk_ddic_dsi_wait_te_send_cmd_no_lock().
+ *
+ * It differs from mtk_ddic_dsi_send_cmd() above by one EVENT_TE wait:
+ * clear the TE event first, then wait for one more TE once the LCM is
+ * connected.  v2 kept only the variant without that wait, but the BIST /
+ * round / GIR commands of the MI panel driver (panel-k11t-*) depend on it.
+ *
+ * Restored as 4.19 had it; everything else matches
+ * mtk_ddic_dsi_send_cmd().
+ */
+int mtk_ddic_dsi_wait_te_send_cmd_no_lock(struct mtk_ddic_dsi_msg *cmd_msg,
+			bool blocking)
+{
+	struct drm_crtc *crtc;
+	struct mtk_drm_crtc *mtk_crtc;
+	struct mtk_ddp_comp *output_comp;
+	struct cmdq_pkt *cmdq_handle;
+	bool is_frame_mode;
+	struct mtk_cmdq_cb_data *cb_data;
+	int index = 0;
+	int ret = 0;
+
+	DDPDBG("%s +\n", __func__);
+
+	if (IS_ERR_OR_NULL(drm_dev)) {
+		DDPPR_ERR("%s, invalid drm dev\n", __func__);
+		return -EINVAL;
+	}
+
+	/* This cmd only for crtc0 */
+	crtc = list_first_entry(&(drm_dev)->mode_config.crtc_list,
+			typeof(*crtc), head);
+	if (IS_ERR_OR_NULL(crtc)) {
+		DDPPR_ERR("find crtc fail\n");
+		return -EINVAL;
+	}
+
+	index = drm_crtc_index(crtc);
+
+	CRTC_MMP_EVENT_START(index, ddic_send_cmd, (unsigned long)crtc,
+				blocking);
+
+	mtk_crtc = to_mtk_crtc(crtc);
+
+	DDP_MUTEX_LOCK(&mtk_crtc->lock, __func__, __LINE__);
+
+	if (!mtk_crtc->enabled) {
+		DDPMSG("crtc%d disable skip %s\n",
+			drm_crtc_index(&mtk_crtc->base), __func__);
+		DDP_MUTEX_UNLOCK(&mtk_crtc->lock, __func__, __LINE__);
+		CRTC_MMP_EVENT_END(index, ddic_send_cmd, 0, 1);
+		return -EINVAL;
+	} else if (mtk_crtc->ddp_mode == DDP_NO_USE) {
+		DDPMSG("skip %s, ddp_mode: NO_USE\n", __func__);
+		DDP_MUTEX_UNLOCK(&mtk_crtc->lock, __func__, __LINE__);
+		CRTC_MMP_EVENT_END(index, ddic_send_cmd, 0, 2);
+		return -EINVAL;
+	}
+
+	output_comp = mtk_ddp_comp_request_output(mtk_crtc);
+	if (unlikely(!output_comp)) {
+		DDPPR_ERR("%s:invalid output comp\n", __func__);
+		DDP_MUTEX_UNLOCK(&mtk_crtc->lock, __func__, __LINE__);
+		CRTC_MMP_EVENT_END(index, ddic_send_cmd, 0, 3);
+		return -EINVAL;
+	}
+
+	is_frame_mode = mtk_crtc_is_frame_trigger_mode(&mtk_crtc->base);
+
+	CRTC_MMP_MARK(index, ddic_send_cmd, 1, 0);
+
+	/* Kick idle */
+	mtk_drm_idlemgr_kick(__func__, crtc, 0);
+
+	CRTC_MMP_MARK(index, ddic_send_cmd, 2, 0);
+
+	mtk_crtc_pkt_create(&cmdq_handle, crtc,
+			mtk_crtc->gce_obj.client[CLIENT_DSI_CFG]);
+
+	if (mtk_crtc_with_sub_path(crtc, mtk_crtc->ddp_mode))
+		mtk_crtc_wait_frame_done(mtk_crtc, cmdq_handle,
+			DDP_SECOND_PATH, 0);
+	else
+		mtk_crtc_wait_frame_done(mtk_crtc, cmdq_handle,
+			DDP_FIRST_PATH, 0);
+
+	if (is_frame_mode) {
+		cmdq_pkt_clear_event(cmdq_handle,
+				     mtk_crtc->gce_obj.event[EVENT_TE]);
+
+		if (mtk_drm_lcm_is_connect())
+			cmdq_pkt_wfe(cmdq_handle,
+				     mtk_crtc->gce_obj.event[EVENT_TE]);
+	}
+
+	if (is_frame_mode) {
+		cmdq_pkt_clear_event(cmdq_handle,
+			mtk_crtc->gce_obj.event[EVENT_STREAM_BLOCK]);
+		cmdq_pkt_wfe(cmdq_handle,
+			mtk_crtc->gce_obj.event[EVENT_CABC_EOF]);
+		cmdq_pkt_clear_event(cmdq_handle,
+			mtk_crtc->gce_obj.event[EVENT_STREAM_DIRTY]);
+	}
+
+	/* DSI_SEND_DDIC_CMD */
+	if (output_comp)
+		ret = mtk_ddp_comp_io_cmd(output_comp, cmdq_handle,
+		DSI_SEND_DDIC_CMD, cmd_msg);
+
+	if (is_frame_mode) {
+		cmdq_pkt_set_event(cmdq_handle,
+			mtk_crtc->gce_obj.event[EVENT_STREAM_DIRTY]);
+		cmdq_pkt_set_event(cmdq_handle,
+			mtk_crtc->gce_obj.event[EVENT_CABC_EOF]);
+		cmdq_pkt_set_event(cmdq_handle,
+			mtk_crtc->gce_obj.event[EVENT_STREAM_BLOCK]);
+	}
+
+	if (blocking) {
+		cmdq_pkt_flush(cmdq_handle);
+		cmdq_pkt_destroy(cmdq_handle);
+	} else {
+		cb_data = kmalloc(sizeof(*cb_data), GFP_KERNEL);
+		if (!cb_data) {
+			DDPPR_ERR("%s:cb data creation failed\n", __func__);
+			DDP_MUTEX_UNLOCK(&mtk_crtc->lock, __func__, __LINE__);
+			CRTC_MMP_EVENT_END(index, ddic_send_cmd, 0, 4);
+			return -EINVAL;
+		}
+
+		cb_data->cmdq_handle = cmdq_handle;
+		cmdq_pkt_flush_threaded(cmdq_handle, mtk_ddic_send_cb, cb_data);
+	}
+	DDPMSG("%s -\n", __func__);
+	DDP_MUTEX_UNLOCK(&mtk_crtc->lock, __func__, __LINE__);
+	CRTC_MMP_EVENT_END(index, ddic_send_cmd, (unsigned long)crtc,
+			blocking);
+
+	return ret;
+}
+
+/*
+ * AGATE(5.10): 4.19's mtk_ddic_dsi_wait_te_send_cmd().
+ * Compared to the _no_lock variant it only takes commit.lock first, which
+ * is the lock order 4.19 used, so reuse it instead of duplicating the body.
+ */
+int mtk_ddic_dsi_wait_te_send_cmd(struct mtk_ddic_dsi_msg *cmd_msg,
+			bool blocking)
+{
+	struct drm_crtc *crtc;
+	struct mtk_drm_private *private;
+	int ret = 0;
+
+	if (IS_ERR_OR_NULL(drm_dev)) {
+		DDPPR_ERR("%s, invalid drm dev\n", __func__);
+		return -EINVAL;
+	}
+
+	crtc = list_first_entry(&(drm_dev)->mode_config.crtc_list,
+			typeof(*crtc), head);
+	if (IS_ERR_OR_NULL(crtc)) {
+		DDPPR_ERR("find crtc fail\n");
+		return -EINVAL;
+	}
+
+	private = crtc->dev->dev_private;
+
+	mutex_lock(&private->commit.lock);
+	ret = mtk_ddic_dsi_wait_te_send_cmd_no_lock(cmd_msg, blocking);
+	mutex_unlock(&private->commit.lock);
+
+	return ret;
+}
+
 int mtk_ddic_dsi_read_cmd(struct mtk_ddic_dsi_msg *cmd_msg)
 {
 	struct drm_crtc *crtc;

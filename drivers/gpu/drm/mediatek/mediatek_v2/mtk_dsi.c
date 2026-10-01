@@ -453,6 +453,40 @@ static bool mtk_dsi_doze_state(struct mtk_dsi *dsi)
 	return state->prop_val[CRTC_PROP_DOZE_ACTIVE];
 }
 
+/*
+ * AGATE(5.10): 4.19's get_dsi_doze_state().  4.19 found the mtk_dsi
+ * through the global g_output_comp; v2 dropped that global, so derive it
+ * from crtc0's output comp the same way mtk_ddic_dsi_send_cmd() does.
+ * The semantics are unchanged -- both answer "are we in doze/AOD".
+ * The CRC / mode_switch paths of the MI panel driver need it.
+ */
+bool get_dsi_doze_state(void)
+{
+	struct drm_crtc *crtc;
+	struct mtk_drm_crtc *mtk_crtc;
+	struct mtk_ddp_comp *comp;
+	struct mtk_dsi *dsi;
+
+	if (IS_ERR_OR_NULL(drm_dev))
+		return false;
+
+	/* This cmd only for crtc0 */
+	crtc = list_first_entry(&(drm_dev)->mode_config.crtc_list,
+			typeof(*crtc), head);
+	if (IS_ERR_OR_NULL(crtc))
+		return false;
+
+	mtk_crtc = to_mtk_crtc(crtc);
+	comp = mtk_ddp_comp_request_output(mtk_crtc);
+	if (!comp)
+		return false;
+
+	dsi = container_of(comp, struct mtk_dsi, ddp_comp);
+
+	return mtk_dsi_doze_state(dsi);
+}
+EXPORT_SYMBOL(get_dsi_doze_state);
+
 static bool mtk_dsi_doze_status_change(struct mtk_dsi *dsi)
 {
 	bool doze_enabled = mtk_dsi_doze_state(dsi);

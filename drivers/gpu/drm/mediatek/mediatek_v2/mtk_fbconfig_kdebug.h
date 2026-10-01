@@ -117,10 +117,17 @@ struct ESD_PARA {
 	char *esd_ret_buffer;
 };
 
-#ifdef DRM_CMDQ_DISABLE
-//drm_dev define in mtk_fbconfig_kdebug.c, PanelMaster_Init() must be called before crtc_create
+/*
+ * drm_dev is defined in mtk_fbconfig_kdebug.c and assigned by
+ * PanelMaster_Init() from the drm bind path, so it is valid in every build
+ * configuration.  The old DRM_CMDQ_DISABLE guard was vestigial (that macro
+ * is never defined in this tree -- see mediatek_v2/Makefile) and it hid the
+ * symbol from mtk_dsi.c / mtk_drm_crtc.c, which need it for the agate panel
+ * helpers ported from 4.19 (get_dsi_doze_state,
+ * mtk_drm_crtc_fps_switch_mode_wait) -- the same global that 4.19's
+ * mtkfb_get_drmcrtc() used.
+ */
 extern struct drm_device *drm_dev;
-#endif
 
 #ifdef IF_ZERO
 struct LAYER_H_SIZE {
