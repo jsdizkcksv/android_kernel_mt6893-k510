@@ -35,3 +35,7 @@ subdir-ccflags-y += \
 	-I$(MTK_CUSTOM_PATH)/power_throttling
 subdir-ccflags-y += \
     -I$(MTK_CUSTOM_PATH)/pbm
+subdir-ccflags-y += \
+	-I$(MTK_CUSTOM_PATH)/include/mt-plat
+subdir-ccflags-y += \
+	-I$(MTK_CUSTOM_PATH)/include
