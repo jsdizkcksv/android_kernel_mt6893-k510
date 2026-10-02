@@ -1253,6 +1253,21 @@
 		pmu_boundary_num = <4>;
 		pmu_dsu_support = <0>;
 	};
+
+	flashlights_mt6360: flashlights_mt6360 {
+		compatible = "mediatek,flashlights_mt6360";
+		decouple = <1>;
+		channel@1 {
+			type = <0>;
+			ct = <0>;
+			part = <0>;
+		};
+		channel@2 {
+			type = <0>;
+			ct = <1>;
+			part = <0>;
+		};
+	};
 };
 
 &i2c5 {
@@ -1311,6 +1326,31 @@
 		mt6360_adc: adc {
 			compatible = "mediatek,mt6360_adc";
 			#io-channel-cells = <1>;
+		};
+		fled {
+			compatible = "mediatek,mt6360_pmu_fled";
+			interrupts = <11 0>, <74 0>, <75 0>, <78 0>, <79 0>;
+			interrupt-names = "fled_chg_vinovp_evt", "fled_tx_evt",
+					  "fled_lvf_evt", "fled2_short_evt",
+					  "fled1_short_evt";
+			/* 0: fixed mode, 1: tracking mode */
+			fled_vmid_track = <0>;
+			/* 64~2432ms, 32ms/step */
+			fled_strb_tout = <1248>;
+			/* 25000~400000uA, 12500uA/step */
+			fled1_tor_cur = <37500>;
+			/*
+			 * 25000~750000uA, 6250uA/step
+			 * 750000~1500000uA, 12500uA/step
+			 */
+			fled1_strb_cur = <750000>;
+			/* 25000~400000uA, 12500uA/step */
+			fled2_tor_cur = <37500>;
+			/*
+			 * 25000~750000uA, 6250uA/step
+			 * 750000~1500000uA, 12500uA/step
+			 */
+			fled2_strb_cur = <800000>;
 		};
 		mt6360_led: led {
 			compatible = "mediatek,mt6360_led";
