@@ -28,7 +28,7 @@
 #include "elliptic_mixer_controls.h"
 //#include "scp_helper.h"
 //#include "scp_ipi.h"
-#include <scp_rv.h>
+#include <scp.h>
 //#include "scp_ipi_wrapper.h"
 // #define USND_IPI_SEND_BUFFER_LENGTH 128
 // #define USND_IPI_RECEIVE_LENGTH 128
