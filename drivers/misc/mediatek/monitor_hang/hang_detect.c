@@ -84,6 +84,16 @@ static struct hang_callback_list *callback_list;
 static struct proc_dir_entry *pe;
 #endif
 
+#ifdef CONFIG_MTK_ENG_BUILD
+static int reboot_cnt=5;
+#elif defined (CONFIG_PAGE_OWNER)
+/* For userdebug build */
+static int reboot_cnt=5;
+#else
+static int reboot_cnt=1;
+#endif
+module_param(reboot_cnt, int, 0644);
+
 DECLARE_WAIT_QUEUE_HEAD(dump_bt_start_wait);
 DECLARE_WAIT_QUEUE_HEAD(dump_bt_done_wait);
 DEFINE_RAW_SPINLOCK(white_list_lock);
@@ -626,7 +636,7 @@ static long monitor_hang_ioctl(struct file *file, unsigned int cmd,
 #ifdef CONFIG_MTK_HANG_DETECT_DB
 	if (cmd == HANG_SET_REBOOT) {
 		reboot_flag = true;
-		hang_detect_counter = 5;
+		hang_detect_counter = reboot_cnt;
 		hd_timeout = 5;
 		hd_detect_enabled = true;
 		pr_info("hang_detect: %s set reboot command.\n", current->comm);
