@@ -383,6 +383,7 @@ static void jpeg_drv_hybrid_dec_unlock(unsigned int hwid)
 			bufInfo[hwid].o_sgt);
 		jpg_dmabuf_put(bufInfo[hwid].i_dbuf);
 		jpg_dmabuf_put(bufInfo[hwid].o_dbuf);
+		gJpegqDev.is_dec_started[hwid] = false;
 		// we manually add 1 ref count, need to put it.
 	}
 	mutex_unlock(&jpeg_hybrid_dec_lock);
@@ -402,11 +403,11 @@ static int jpeg_drv_hybrid_dec_suspend_notifier(
 		for (i = 0 ; i < HW_CORE_NUMBER; i++) {
 			JPEG_LOG(1, "jpeg dec sn wait core %d", i);
 			while (dec_hwlocked[i]) {
-				JPEG_LOG(1, "jpeg dec sn core %d locked. wait...", i);
+				pr_info("jpeg dec sn core %d locked. wait...", i);
 				usleep_range(10000, 20000);
 				wait_cnt++;
 				if (wait_cnt > 5) {
-					JPEG_LOG(0, "jpeg dec sn unlock core %d", i);
+					pr_info("jpeg dec sn unlock core %d", i);
 					jpeg_drv_hybrid_dec_unlock(i);
 					return NOTIFY_DONE;
 				}
@@ -506,20 +507,25 @@ static int jpeg_hybrid_dec_ioctl(unsigned int cmd, unsigned long arg,
 			JPEG_LOG(1, "jpeg_drv_hybrid_dec_lock failed (hw busy)");
 			return -EBUSY;
 		}
-
+		mutex_lock(&jpeg_hybrid_dec_lock);
 		if (jpeg_drv_hybrid_dec_start(taskParams.data, hwid, &index_buf_fd) == 0) {
 			JPEG_LOG(1, "jpeg_drv_hybrid_dec_start success %u index buf fd:%d", hwid, index_buf_fd);
 			if (copy_to_user(
 				taskParams.hwid, &hwid, sizeof(int))) {
 				JPEG_LOG(0, "Copy to user error");
+				mutex_unlock(&jpeg_hybrid_dec_lock);
 				return -EFAULT;
 			}
 			if (copy_to_user(
 				taskParams.index_buf_fd, &index_buf_fd, sizeof(int))) {
 				JPEG_LOG(0, "Copy to user error");
+				mutex_unlock(&jpeg_hybrid_dec_lock);
 				return -EFAULT;
 			}
+			gJpegqDev.is_dec_started[hwid] = true;
+			mutex_unlock(&jpeg_hybrid_dec_lock);
 		} else {
+			mutex_unlock(&jpeg_hybrid_dec_lock);
 			JPEG_LOG(0, "jpeg_drv_dec_hybrid_start failed");
 			jpeg_drv_hybrid_dec_unlock(hwid);
 			return -EFAULT;
@@ -550,6 +556,13 @@ static int jpeg_hybrid_dec_ioctl(unsigned int cmd, unsigned long arg,
 			JPEG_LOG(0, "get hybrid dec id failed");
 			return -EFAULT;
 		}
+		mutex_lock(&jpeg_hybrid_dec_lock);
+		if (!gJpegqDev.is_dec_started[hwid]) {
+			JPEG_LOG(0, "Wait before decode get started");
+			mutex_unlock(&jpeg_hybrid_dec_lock);
+			return -EFAULT;
+		}
+		mutex_unlock(&jpeg_hybrid_dec_lock);
 	#ifdef FPGA_VERSION
 		JPEG_LOG(1, "Polling JPEG Hybrid Dec Status hwid: %d",
 				hwid);
