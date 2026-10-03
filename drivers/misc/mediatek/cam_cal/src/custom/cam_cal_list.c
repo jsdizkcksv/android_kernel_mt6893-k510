@@ -13,6 +13,7 @@
 #define MAX_EEPROM_SIZE_16K 0x4000
 
 struct stCAM_CAL_LIST_STRUCT g_camCalList[] = {
+#if 0
 	/*Below is commom sensor */
 	{OV48B_SENSOR_ID, 0xA0, Common_read_region, MAX_EEPROM_SIZE_16K},
 	{IMX766_SENSOR_ID, 0xA0, Common_read_region, MAX_EEPROM_SIZE_32K},
@@ -36,6 +37,13 @@ struct stCAM_CAL_LIST_STRUCT g_camCalList[] = {
 	{IMX350_SENSOR_ID, 0xA0, Common_read_region},
 	{IMX386_MONO_SENSOR_ID, 0xA0, Common_read_region},
 	{IMX499_SENSOR_ID, 0xA0, Common_read_region},
+#endif
+	{AGATES5KHM2_SENSOR_ID, 0xA2, Common_read_region, DEFAULT_MAX_EEPROM_SIZE_16K},
+	//{OV64B40SUNNY_SENSOR_ID, 0xA2, Common_read_region, DEFAULT_MAX_EEPROM_SIZE_16K},
+	//{OV16A1QOFILM_SENSOR_ID, 0xA2, Common_read_region, DEFAULT_MAX_EEPROM_SIZE_16K},
+	//{GC02M1SUNNY_SENSOR_ID, 0xA4, Common_read_region, DEFAULT_MAX_EEPROM_SIZE_16K},
+	//{IMX355SUNNY_SENSOR_ID, 0xA0, Common_read_region, DEFAULT_MAX_EEPROM_SIZE_16K},
+	{AGATES5K5E9_SENSOR_ID, 0xA4, Common_read_region, DEFAULT_MAX_EEPROM_SIZE_8K},
 	/*  ADD before this line */
 	{0, 0, 0}       /*end of list */
 };
