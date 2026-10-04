@@ -5,7 +5,9 @@
  *
  */
 
-&mtk_gauge {
+/ {
+	battery: battery {
+		compatible = "mediatek,bat_gm30";
 	DIFFERENCE_FULLOCV_ITH = <(200)>;
 	/* Charging termination current */
 	SHUTDOWN_1_TIME = <(5)>;
@@ -69,4 +71,5 @@
 	/* Multi gauge0 enable */
 #include "mt6893_battery_table.dtsi"
 #include "mt6893_battery_prop_dim2_ext.dtsi"
+	};
 };
