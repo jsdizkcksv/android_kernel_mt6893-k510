@@ -17,6 +17,12 @@ config MTK_DTBO_FEATURE
 	  in the existing tree.
 	  If you are not sure about this, set y
 
+config MEDIATEK_COMMON_LEGACY
+    bool "Compatibility support for older Mediatek blobs"
+    depends on ARCH_MEDIATEK
+    help
+      Say Y here to enable legacy UAPI/ABI compatibility for older proprietary Mediatek blobs.
+
 menu "Storage"
 source "drivers/misc/mediatek/pidmap/Kconfig"
 endmenu # Storage
