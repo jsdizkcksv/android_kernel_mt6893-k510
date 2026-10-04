@@ -22,7 +22,11 @@
 #include <linux/delay.h>
 #include <uapi/linux/sched/types.h>
 #include <scp.h>
-
+#include "scp_ipi.h"
+#include "scp_ipi_pin.h"
+#include "scp_mbox_layout.h"
+#include "scp_helper.h"
+#include "scp_excep.h"
 #include "mtk_nanohub.h"
 #include "comms.h"
 #include "hf_manager.h"
@@ -1139,9 +1143,9 @@ int mtk_nanohub_enable_to_hub(uint8_t sensor_id, int enabledisable)
 		return -1;
 	}
 	sensor_state[sensor_type].enable = enabledisable;
-	#ifdef CONFIG_CUSTOM_KERNEL_SCP_BUMP_UP
+#ifdef CONFIG_CUSTOM_KERNEL_SCP_BUMP_UP
 	mtk_nanohub_check_fusion_state(sensor_type);
-    #endif
+#endif
 	init_sensor_config_cmd(&cmd, sensor_type);
 	pr_err("sensor_id id %d, sensor_type:%d\n", sensor_id,sensor_type);
 	if (atomic_read(&power_status) == SENSOR_POWER_UP) {
@@ -3431,6 +3435,10 @@ static int mtk_nanohub_probe(struct platform_device *pdev)
 	mod_timer(&device->sync_time_timer,
 			  jiffies + msecs_to_jiffies(SYNC_TIME_START_CYCLC));
 
+#ifdef BACKLED_STATE_NOTIFY
+	INIT_WORK(&device->cabc_notify_work, cabc_backled_data_notification_work);
+	device->cabc_backled_data = 0;
+#endif
 	/* init wakeup source */
 	device->time_sync_wakeup_src = wakeup_source_register(NULL, "synctime");
 	if (!device->time_sync_wakeup_src) {
