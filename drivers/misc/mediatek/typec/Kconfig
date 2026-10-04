@@ -27,5 +27,10 @@ config AGATE_CHARGER
 	bool "MTK charger for AGATE"
 	help
 	  Say yes In MTK charger AGATE.
+
+config ARES_CHARGER
+	bool "MTK charger for ARES"
+	help
+	  Say yes In MTK charger ARES.
 source "drivers/misc/mediatek/typec/tcpc/Kconfig"
 source "drivers/misc/mediatek/typec/tcpc_agate/Kconfig"

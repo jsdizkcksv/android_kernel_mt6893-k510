@@ -5,6 +5,8 @@ ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat
 
 ifeq ($(CONFIG_AGATE_CHARGER),y)
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/typec/tcpc_agate/inc
+else ifeq ($(CONFIG_ARES_CHARGER),y)
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/typec/tcpc_ares/inc
 else
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/typec/tcpc/inc
 endif
