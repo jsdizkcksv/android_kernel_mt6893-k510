@@ -394,7 +394,7 @@ this file is only for attribution of ares
 	};
 };
 
-&battery {
+&bat_gm30 {
 	DISABLE_MTKBATTERY = <(1)>;
 	use-ti-gauge;
 };
