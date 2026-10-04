@@ -858,15 +858,9 @@ static int fts_read_raw(struct fts_ts_data *ts_data, u8 *data, u32 datalen)
 	return ret;
 }
 
-static struct timeval get_timeval(const s64 nsec)
+static struct timespec64 get_timeval(const s64 nsec)
 {
-	struct timespec ts = ns_to_timespec(nsec);
-	struct timeval tv;
-
-	tv.tv_sec = ts.tv_sec;
-	tv.tv_usec = (suseconds_t) ts.tv_nsec / 1000;
-
-	return tv;
+	return ns_to_timespec64(nsec);
 }
 
 static irqreturn_t fts_irq_handler(int irq, void *data)
@@ -1810,7 +1804,7 @@ static void fts_restore_mode_value(int mode, int value_type)
 		xiaomi_touch_interfaces.touch_mode[mode][value_type];
 }
 
-static void fts_restore_normal_mode()
+static void fts_restore_normal_mode(void)
 {
 	int i;
 	int temp_value;

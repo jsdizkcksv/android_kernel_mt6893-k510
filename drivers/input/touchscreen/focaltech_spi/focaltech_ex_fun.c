@@ -277,10 +277,9 @@ proc_read_err:
 	return ret;
 }
 
-static const struct file_operations fts_proc_fops = {
-	.owner  = THIS_MODULE,
-	.read   = fts_debug_read,
-	.write  = fts_debug_write,
+static const struct proc_ops fts_proc_fops = {
+	.proc_read  = fts_debug_read,
+	.proc_write = fts_debug_write,
 };
 
 static ssize_t fts_fw_version_read(struct file *filp,
@@ -317,8 +316,8 @@ static ssize_t fts_fw_version_read(struct file *filp,
 		return cnt;
 }
 
-static const struct file_operations tp_fw_version_fops = {
-	.read = fts_fw_version_read,
+static const struct proc_ops tp_fw_version_fops = {
+	.proc_read = fts_fw_version_read,
 };
 
 static ssize_t fts_lockdown_info_read(struct file *filp,
@@ -345,8 +344,8 @@ static ssize_t fts_lockdown_info_read(struct file *filp,
 		return cnt;
 }
 
-static const struct file_operations tp_lockdown_info_fops = {
-	.read = fts_lockdown_info_read,
+static const struct proc_ops tp_lockdown_info_fops = {
+	.proc_read = fts_lockdown_info_read,
 };
 
 int fts_create_proc(struct fts_ts_data *ts_data)

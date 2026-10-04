@@ -2124,12 +2124,11 @@ static int32_t tp_test_data_open(struct inode *inode, struct file *file)
 	return seq_open(file, &data_fops);
 }
 
-static const struct file_operations tp_test_data_fops = {
-	.owner = THIS_MODULE,
-	.open = tp_test_data_open,
-	.read = seq_read,
-	.llseek = seq_lseek,
-	.release = seq_release,
+static const struct proc_ops tp_test_data_fops = {
+	.proc_open = tp_test_data_open,
+	.proc_read = seq_read,
+	.proc_lseek = seq_lseek,
+	.proc_release = seq_release,
 };
 
 static void *result_start(struct seq_file *m, loff_t *pos)
@@ -2174,12 +2173,11 @@ static int32_t tp_test_result_open(struct inode *inode, struct file *file)
 	return seq_open(file, &result_fops);
 }
 
-static const struct file_operations tp_test_result_fops = {
-	.owner = THIS_MODULE,
-	.open = tp_test_result_open,
-	.read = seq_read,
-	.llseek = seq_lseek,
-	.release = seq_release,
+static const struct proc_ops tp_test_result_fops = {
+	.proc_open = tp_test_result_open,
+	.proc_read = seq_read,
+	.proc_lseek = seq_lseek,
+	.proc_release = seq_release,
 };
 
 int tp_selftest_result;
@@ -2288,11 +2286,11 @@ int tp_selftest_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static const struct file_operations tp_selftest_fops = {
-	.open = tp_selftest_open,
-	.read = tp_selftest_read,
-	.write = tp_selftest_write,
-	.release = tp_selftest_release,
+static const struct proc_ops tp_selftest_fops = {
+	.proc_open = tp_selftest_open,
+	.proc_read = tp_selftest_read,
+	.proc_write = tp_selftest_write,
+	.proc_release = tp_selftest_release,
 };
 
 static int32_t datadump_show(struct seq_file *m, void *v)
@@ -2419,12 +2417,11 @@ static int32_t tp_datadump_open(struct inode *inode, struct file *file)
 	return seq_open(file, &tp_datadump_seq_ops);
 }
 
-static const struct file_operations tp_datadump_fops = {
-	.owner = THIS_MODULE,
-	.open = tp_datadump_open,
-	.read = seq_read,
-	.llseek = seq_lseek,
-	.release = seq_release,
+static const struct proc_ops tp_datadump_fops = {
+	.proc_open = tp_datadump_open,
+	.proc_read = seq_read,
+	.proc_lseek = seq_lseek,
+	.proc_release = seq_release,
 };
 
 static int fts_test_func_init(struct fts_ts_data *ts_data)

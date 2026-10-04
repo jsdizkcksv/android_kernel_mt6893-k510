@@ -147,8 +147,8 @@ struct tp_raw {
 };
 
 struct tp_frame {
-    struct timeval tv0;
-    struct timeval tv;
+    struct timespec64 tv0;
+    struct timespec64 tv;
     char tp_raw[sizeof(struct tp_raw)];
 };
 
