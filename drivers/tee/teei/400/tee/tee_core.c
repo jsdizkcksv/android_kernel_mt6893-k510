@@ -105,11 +105,10 @@ int tee_k_open(struct file *filp)
 	if (IS_ERR(ctx))
 		return PTR_ERR(ctx);
 
-	mutex_init(&ctx->mutex);
-
 	filp->private_data = ctx;
 	return 0;
 }
+
 
 static int tee_open(struct inode *inode, struct file *filp)
 {
@@ -262,7 +261,7 @@ static int params_from_user(struct tee_context *ctx, struct tee_param *params,
 
 			if ((ip.a >= shm->size) || (ip.b > shm->size)
 					|| ((ip.a + ip.b) > shm->size)) {
-				IMSG_ERROR("Inval param in %s\n", __func__);
+				IMSG_ERROR("Inval param %s\n", __func__);
 				return -EINVAL;
 			}
 

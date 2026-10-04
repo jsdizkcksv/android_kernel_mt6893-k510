@@ -45,7 +45,7 @@ config MICROTRUST_TZ_DRIVER
 config MICROTRUST_DYNAMIC_CORE
 	tristate "Microtrust Dynamic Core"
 	depends on MICROTRUST_TEE_SUPPORT
-	default y
+	default n
 	help
 	  Enables the support of Microtrust trustzone linux driver.
 	  This driver in charge of all initial process, creating
@@ -57,7 +57,7 @@ config MICROTRUST_TZ_DRIVER_MTK_BOOTPROF
 	tristate "Enable MTK bootprof to track boot progress of TEEI"
 	depends on MICROTRUST_TZ_DRIVER
 	depends on MTPROF
-	default y
+	default n
 	help
 	  Enables the support of Mediatek bootprof feature in Microtrust
 	  tz_driver. This feature is for tracking boot progress by
@@ -145,7 +145,7 @@ config MICROTRUST_UNITTEST_SUPPORT
 config MICROTRUST_TZ_LOG
 	bool "Enable Microtrust TrustZone logger"
 	depends on MICROTRUST_TEE_SUPPORT
-	default y
+	default n
 	help
 	  Enable Microtrust TrustZone logger to dump TEE logs in kernel log buffer.
 	  This driver will read out log buffer and direct to console each

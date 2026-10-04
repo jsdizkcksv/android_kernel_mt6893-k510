@@ -84,7 +84,7 @@ DECLARE_SEMA(pm_sema, 0);
 DECLARE_COMPLETION(boot_decryto_lock);
 
 #if !IS_ENABLED(CONFIG_MICROTRUST_DYNAMIC_CORE)
-#define TZ_PREFER_BIND_CORE (6)
+#define TZ_PREFER_BIND_CORE (7)
 #endif
 
 #define TEEI_RT_POLICY			(0x01)
@@ -209,22 +209,17 @@ static struct platform_device *g_teei_pdev;
 
 int teei_set_switch_pri(unsigned long policy)
 {
-#ifdef DYNAMIC_SET_PRIORITY
-	struct sched_param param = {.sched_priority = 50 };
 	int retVal = 0;
 
 	if (policy == TEEI_RT_POLICY) {
 		if (teei_switch_task != NULL) {
-			sched_setscheduler_nocheck(teei_switch_task,
-						SCHED_FIFO, &param);
+			set_user_nice(teei_switch_task, MIN_NICE);
 			return 0;
 		} else
 			return -EINVAL;
 	} else if (policy == TEEI_NORMAL_POLICY) {
 		if (teei_switch_task != NULL) {
-			param.sched_priority = 0;
-			sched_setscheduler_nocheck(teei_switch_task,
-						SCHED_NORMAL, &param);
+			set_user_nice(teei_switch_task, 0);
 			return 0;
 		} else
 			return -EINVAL;
@@ -235,9 +230,6 @@ int teei_set_switch_pri(unsigned long policy)
 	}
 
 	return retVal;
-#else
-	return 0;
-#endif
 }
 
 void teei_cpus_read_lock(void)
@@ -254,18 +246,14 @@ void teei_cpus_read_unlock(void)
 
 void teei_cpus_write_lock(void)
 {
-#ifdef ISEE_FP_SINGLE_CHANNEL
 	cpus_write_lock();
 	teei_cpu_write_owner = current;
-#endif
 }
 
 void teei_cpus_write_unlock(void)
 {
-#ifdef ISEE_FP_SINGLE_CHANNEL
 	teei_cpu_write_owner = NULL;
 	cpus_write_unlock();
-#endif
 }
 
 struct tz_driver_state *get_tz_drv_state(void)
@@ -449,6 +437,7 @@ static int nq_cpu_down_prep(unsigned int cpu)
 		teei_notify_switch_fn();
 		down(&pm_sema);
 	}
+
 	return retVal;
 }
 
