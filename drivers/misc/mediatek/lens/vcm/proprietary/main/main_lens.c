@@ -25,6 +25,8 @@
 #include <linux/regulator/consumer.h>
 #include <linux/pinctrl/consumer.h>
 
+extern int camera_power;
+
 /* OIS/EIS Timer & Workqueue */
 #include <linux/hrtimer.h>
 #include <linux/init.h>
@@ -216,6 +218,99 @@ static void camaf_power_init(void)
 		lens_device->of_node = kd_node;
 	}
 }
+
+/* PMIC */
+#if !defined(CONFIG_MTK_LEGACY)
+static struct regulator *regVCAMAF;
+static int __maybe_unused g_regVCAMAFEn;
+
+void AFRegulatorCtrl(int Stage)
+{
+	LOG_INF("AFIOC_S_SETPOWERCTRL regulator_put %p\n", regVCAMAF);
+
+	if (Stage == 0) {
+		if (regVCAMAF == NULL) {
+			struct device_node *node, *kd_node;
+
+			/* check if customer camera node defined */
+			#if defined(CONFIG_MACH_MT6877)
+				node = of_find_compatible_node(
+					NULL, NULL, "mediatek,CAMERA_MAIN_AF");
+			#else
+				node = of_find_compatible_node(
+					NULL, NULL, "mediatek,camera_af_lens");
+			#endif
+
+			if (node) {
+				kd_node = lens_device->of_node;
+				lens_device->of_node = node;
+
+				#if defined(CONFIG_MACH_MT6765)
+				regVCAMAF =
+					regulator_get(lens_device, "vldo28");
+				#elif defined(CONFIG_MACH_MT6768)
+				regVCAMAF =
+					regulator_get(lens_device, "vldo28");
+				#elif defined(CONFIG_MACH_MT6771)
+				regVCAMAF =
+					regulator_get(lens_device, "vldo28");
+				#elif defined(CONFIG_MACH_MT6853)
+				if (strncmp(CONFIG_ARCH_MTK_PROJECT,
+					"k6853v1_64_6360_alpha", 20) == 0) {
+					regVCAMAF =
+					regulator_get(lens_device, "vmch");
+				} else {
+					regVCAMAF =
+					regulator_get(lens_device, "vcamio");
+				}
+				#elif defined(CONFIG_MACH_MT6873)
+				if (strncmp(CONFIG_ARCH_MTK_PROJECT,
+					"k6873v1_64_alpha", 16) == 0) {
+					regVCAMAF =
+					regulator_get(lens_device, "vmch");
+				} else {
+					regVCAMAF =
+					regulator_get(lens_device, "vcamio");
+				}
+				#elif defined(CONFIG_MACH_MT6877) || defined(CONFIG_MACH_MT6781)
+				if (strncmp(CONFIG_ARCH_MTK_PROJECT,
+					"k6877v1_64", 10) == 0) {
+					regVCAMAF =
+					regulator_get(lens_device, "cam0_vcamaf");
+					LOG_INF("%s :camera_power= %d\n",__func__,camera_power);
+					if(camera_power == 2){
+					regVCAMAF =
+						regulator_get(lens_device, "cam0_vcamafw");
+					}
+				} else {
+					regVCAMAF =
+					regulator_get(lens_device, "rt5133-ldo3");
+				}
+				#elif defined(CONFIG_MACH_MT6885) || defined(CONFIG_MACH_MT6893)
+				if (strncmp(CONFIG_ARCH_MTK_PROJECT,
+					"k6885v1_64_alpha", 16) == 0) {
+					regVCAMAF =
+					regulator_get(lens_device, "vmc");
+				} else {
+					regVCAMAF =
+					regulator_get(lens_device, "vcamio");
+				}
+				regVCAMAF =
+					regulator_get(lens_device, "vcamwaf");
+				#else
+				regVCAMAF =
+					regulator_get(lens_device, "vcamaf");
+				#endif
+
+				LOG_INF("[Init] regulator_get %p\n", regVCAMAF);
+
+				lens_device->of_node = kd_node;
+			}
+		}
+	}
+}
+#endif
+
 
 static void camaf_power_on(void)
 {
