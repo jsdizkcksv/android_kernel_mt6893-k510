@@ -32,6 +32,8 @@ source "drivers/tee/gud/Kconfig"
 source "drivers/tee/teei/Kconfig"
 
 
+source "drivers/tee/mitee/Kconfig"
+
 endmenu
 
 endif
