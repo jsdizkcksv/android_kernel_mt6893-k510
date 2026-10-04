@@ -76,6 +76,7 @@ static struct dciMessage_t *rpmb_gp_dci;
 #define RPMB_DATA_BUFF_SIZE (1024 * 24)
 #define RPMB_ONE_FRAME_SIZE (512)
 static unsigned char *rpmb_buffer;
+bool use_mitee = true;
 #endif
 
 /* For nl socket */
@@ -2575,6 +2576,7 @@ static long rpmb_ioctl_ufs(struct file *pfile, unsigned int cmd, unsigned long a
 	struct rpmb_ioc_param param;
 #if (defined(CONFIG_MICROTRUST_TEE_SUPPORT))
 	u32 rpmb_size = 0;
+	u32 arg_k = 0;
 	struct rpmb_infor rpmbinfor;
 
 	memset(&rpmbinfor, 0, sizeof(struct rpmb_infor));
@@ -2590,6 +2592,7 @@ static long rpmb_ioctl_ufs(struct file *pfile, unsigned int cmd, unsigned long a
 #if (defined(CONFIG_MICROTRUST_TEE_SUPPORT))
 	if ((cmd == RPMB_IOCTL_SOTER_WRITE_DATA) ||
 		(cmd == RPMB_IOCTL_SOTER_READ_DATA) ||
+		((cmd == RPMB_IOCTL_SOTER_GET_CNT) && use_mitee) ||
 		(cmd == RPMB_IOCTL_SOTER_SET_KEY)) {
 		if (rpmb_buffer == NULL) {
 			MSG(ERR, "%s, rpmb_buffer is NULL!\n", __func__);
@@ -2672,6 +2675,34 @@ static long rpmb_ioctl_ufs(struct file *pfile, unsigned int cmd, unsigned long a
 		break;
 
 #if (defined(CONFIG_MICROTRUST_TEE_SUPPORT))
+	case RPMB_IOCTL_SOTER_GET_CNT:
+
+		MSG(DBG_INFO, "%s, cmd = RPMB_IOCTL_SOTER_GET_CNT\n", __func__);
+
+		if (use_mitee)
+			err = rpmb_req_get_wc_ufs(NULL, NULL, rpmbinfor.data_frame);
+		else
+			err = rpmb_req_get_wc_ufs(NULL, &arg_k, NULL);
+		if (err) {
+			MSG(ERR,
+"%s, Microtrust get rpmb write counter failed, error code (%x)\n",
+				__func__, err);
+			return err;
+		}
+
+		if (use_mitee)
+			err = copy_to_user((void *)arg, rpmb_buffer, 4 + rpmbinfor.size);
+		else
+			err = copy_to_user((void *)arg, &arg_k, sizeof(u32));
+
+		if (err) {
+			MSG(ERR, "%s, copy_to_user failed: %x\n",
+				__func__, err);
+			return -EFAULT;
+		}
+
+		break;
+
 	case RPMB_IOCTL_SOTER_SET_KEY:
 		MSG(DBG_INFO, "%s, cmd = RPMB_IOCTL_SOTER_WRITE_DATA\n",
 		    __func__);
@@ -3141,6 +3172,19 @@ fake_out:
 #endif
 
 #if (defined(CONFIG_MICROTRUST_TEE_SUPPORT))
+	{
+		char mode = 0;
+		char *ptr = NULL;
+
+		ptr = strstr(saved_command_line, "androidboot.tee_type=");
+		if (ptr) {
+			mode = *(ptr + strlen("androidboot.tee_type="));
+			use_mitee = (mode == '1' ? true : false);
+		} else {
+			use_mitee = true;
+		}
+		MSG(INFO, "%s, use_mitee is %d\n", __func__, use_mitee);
+	}
 	rpmb_buffer = kzalloc(RPMB_DATA_BUFF_SIZE, GFP_KERNEL);
 	if (rpmb_buffer == NULL) {
 		MSG(ERR, "%s, rpmb kzalloc memory fail!!!\n", __func__);
