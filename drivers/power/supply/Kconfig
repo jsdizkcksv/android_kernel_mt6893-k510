@@ -949,6 +949,9 @@ source "drivers/power/supply/mediatek/charger/Kconfig"
 source "drivers/power/supply/mediatek/battery_agate/Kconfig"
 source "drivers/power/supply/mediatek/charger_agate/Kconfig"
 source "drivers/power/supply/ti_agate/Kconfig"
+source "drivers/power/supply/mediatek/battery_ares/Kconfig"
+source "drivers/power/supply/mediatek/charger_ares/Kconfig"
+source "drivers/power/supply/ti_ares/Kconfig"
 endif
 
 if MACH_MT6885

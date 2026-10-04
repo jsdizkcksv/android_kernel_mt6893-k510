@@ -4,6 +4,7 @@ subdir-ccflags-$(CONFIG_POWER_SUPPLY_DEBUG) := -DDEBUG
 # own <tcpm.h>.  Its include directory therefore has to be searched before the
 # generic MediaTek tcpc headers, exactly like the 4.19 agate tree did.
 subdir-ccflags-$(CONFIG_AGATE_CHARGER) += -I$(srctree)/drivers/misc/mediatek/typec/tcpc_agate/inc
+subdir-ccflags-$(CONFIG_ARES_CHARGER) += -I$(srctree)/drivers/misc/mediatek/typec/tcpc_ares/inc
 subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/typec/tcpc/inc
 subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/power_throttling
 subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/include
@@ -119,7 +120,7 @@ mt6375-battery-objs := mtk_battery_coulomb_service.o mtk_battery.o mtk_battery_a
 # ships its own implementation below mediatek/charger_agate (+ ti_agate).  Just
 # like the 4.19 agate tree, do not build the generic framework in that case -
 # both provide the same (non-static) symbols.
-ifneq ($(CONFIG_AGATE_CHARGER),y)
+ifneq ($(filter y,$(CONFIG_AGATE_CHARGER) $(CONFIG_ARES_CHARGER)),y)
 obj-$(CONFIG_MTK_CHARGER_TYPE_DETECT)	+= mtk_chg_type_det.o
 obj-$(CONFIG_MTK_CHARGER) += mtk_charger_framework.o mtk_pd_charging.o charger_class.o adapter_class.o mtk_charger_algorithm_class.o mtk_pd_adapter.o
 mtk_charger_framework-objs := mtk_charger.o mtk_charger_intf.o mtk_basic_charger.o mtk_pulse_charger.o
@@ -134,6 +135,7 @@ obj-$(CONFIG_MTK_PUMP_EXPRESS_50_SUPPORT) += mtk_pep50.o
 mtk_pep50-objs := mtk_pe5.o mtk_pe5_hal.o
 endif
 obj-$(CONFIG_AGATE_CHARGER)	+= pmic-voter.o
+obj-$(CONFIG_ARES_CHARGER)	+= pmic-voter.o
 obj-$(CONFIG_AGATE_CHARGER) 	+= battery.o
 obj-$(CONFIG_PISSARRO_CHARGER)	+= pmic_voter.o
 
@@ -142,6 +144,8 @@ else
 	obj-y += mediatek/
 ifeq ($(CONFIG_AGATE_CHARGER),y)
 	obj-y += ti_agate/
+else ifeq ($(CONFIG_ARES_CHARGER),y)
+	obj-y += ti_ares/
 endif
 endif
 

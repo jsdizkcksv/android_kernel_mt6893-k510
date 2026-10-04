@@ -22,6 +22,8 @@ ifneq ($(CONFIG_FPGA_EARLY_PORTING),y)
 ifeq ($(CONFIG_MTK_GAUGE_VERSION),30)
 ifeq ($(CONFIG_AGATE_CHARGER),y)
 	obj-y += battery_agate/
+else ifeq ($(CONFIG_ARES_CHARGER),y)
+	obj-y += battery_ares/
 else
 	obj-y += battery/
 endif
@@ -31,6 +33,8 @@ endif
 ifeq ($(CONFIG_MTK_GAUGE_VERSION),30)
 ifeq ($(CONFIG_AGATE_CHARGER),y)
 	obj-$(CONFIG_MTK_CHARGER) += charger_agate/
+else ifeq ($(CONFIG_ARES_CHARGER),y)
+	obj-$(CONFIG_MTK_CHARGER) += charger_ares/
 else
 	obj-$(CONFIG_MTK_CHARGER) += charger/
 endif
