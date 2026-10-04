@@ -6,6 +6,8 @@ ccflags-y += -I$(srctree)/drivers/usb/gadget/function
 ccflags-$(CONFIG_USB_MTU3_DEBUG)	+= -DDEBUG
 ifeq ($(CONFIG_AGATE_CHARGER),y)
 	ccflags-y += -I$(srctree)/drivers/misc/mediatek/typec/tcpc_agate/
+else ifeq ($(CONFIG_ARES_CHARGER),y)
+	ccflags-y += -I$(srctree)/drivers/misc/mediatek/typec/tcpc_ares/
 else
 	ccflags-y += -I$(srctree)/drivers/misc/mediatek/typec/tcpc/
 endif
