@@ -116,5 +116,7 @@ mediatek-drm-panel-drv-y :=  \
 obj-$(CONFIG_DRM_MEDIATEK_PANEL) += mediatek-drm-gateic.o
 obj-$(CONFIG_DRM_MEDIATEK_PANEL) += mediatek-drm-panel-drv.o
 obj-$(CONFIG_DRM_PANEL_K11T_42_02_0A_DSC_CMD) += panel-k11t-42-02-0a-dsc-cmd.o
+obj-$(CONFIG_DRM_PANEL_K10_42_02_0A_DSC_CMD) += panel-k10-42-02-0a-dsc-cmd.o
+obj-$(CONFIG_DRM_PANEL_K10_42_02_0A_DSC_CMD) += aw2028_led.o
 
 ccflags-$(CONFIG_DRM_MEDIATEK_PANEL) += -I$(srctree)/drivers/leds/
