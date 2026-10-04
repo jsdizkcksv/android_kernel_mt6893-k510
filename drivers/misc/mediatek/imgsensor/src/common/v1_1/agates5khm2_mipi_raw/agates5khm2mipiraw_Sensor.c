@@ -17,7 +17,6 @@
  * Upper this line, this part is controlled by CC/CQ. DO NOT MODIFY!!
  *============================================================================
  ****************************************************************************/
-#include <asm/neon.h>
 #include <linux/videodev2.h>
 #include <linux/i2c.h>
 #include <linux/platform_device.h>
@@ -564,19 +563,20 @@ static void set_shutter_frame_length(kal_uint16 shutter,
 	S5KHM2_LOG_DBG("set shutter =%d, framelength =%d\n", shutter, imgsensor.frame_length);
 }
 
-#define FACTOR 992.0f//(15.5f　* 64.0f)
+#define FACTOR	992U          /* (15.5 * 64 = 992) */
+#define MAX_DGAIN (16 * 1024 - 1)  /* 15.99 ≈ clamp at 16x */
 static kal_uint32 digital_gain_calc(kal_uint16 aaa_gain)
 {
-	float real_dig_gain = 1.0f;//MIN Dgain
-	kal_uint32 reg_dig_gain = 1024;//1024 = 1x
+	kal_uint32 real_dig_gain;
+	kal_uint32 reg_dig_gain;
 
-	real_dig_gain = aaa_gain / FACTOR;
+	real_dig_gain = DIV_ROUND_CLOSEST((u64)aaa_gain * 1024, FACTOR);
 
-	if (real_dig_gain > 15.99f) {
-		real_dig_gain = 15.99f;
-	}
+	/* clamp to max ~15.99x */
+	if (real_dig_gain > MAX_DGAIN)
+		real_dig_gain = MAX_DGAIN;
 
-	reg_dig_gain = (kal_uint32)(real_dig_gain * 1024) << 6;
+	reg_dig_gain = real_dig_gain << 6;
 
 	return reg_dig_gain;
 }
@@ -648,9 +648,7 @@ static kal_uint16 set_gain(kal_uint16 gain)
 		max_gain = 16 * BASEGAIN;
 	}
 	if (gain > max_gain) {
-		kernel_neon_begin();
 		reg_dig_gain = digital_gain_calc(gain);
-		kernel_neon_end();
 		write_cmos_sensor(AGAIN_ADDR, max_gain / 2);
 		write_cmos_sensor(DGAIN_ADDR, (0x0100 & 0xFFFF));
 	} else {
