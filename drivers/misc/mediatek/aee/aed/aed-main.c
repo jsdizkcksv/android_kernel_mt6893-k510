@@ -2518,10 +2518,19 @@ static int __init aed_init(void)
 {
 	int err;
 
+#if IS_ENABLED(CONFIG_MTK_AEE_IPANIC)
 	if (!aee_is_enable()) {
 		pr_info("%s: aee is disable\n", __func__);
 		return 0;
 	}
+#else
+	/*
+	 * Without mrdump there is no aee_is_enable(); AED has no
+	 * exception source to report to, so skip initialisation.
+	 */
+	pr_info("%s: mrdump removed, aed disabled\n", __func__);
+	return 0;
+#endif
 
 	err = aed_proc_init();
 	if (err != 0)
@@ -2562,8 +2571,12 @@ static int __init aed_init(void)
 
 static void __exit aed_exit(void)
 {
+#if IS_ENABLED(CONFIG_MTK_AEE_IPANIC)
 	if (!aee_is_enable())
 		return;
+#else
+	return;
+#endif
 
 	misc_deregister(&aed_ee_dev);
 	misc_deregister(&aed_ke_dev);

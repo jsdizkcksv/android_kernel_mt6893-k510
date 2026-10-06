@@ -1506,7 +1506,7 @@ static int run_callback(void)
 	return -1;
 }
 
-static void show_task_info(void)
+static void __maybe_unused show_task_info(void)
 {
 	struct task_struct *p, *t;
 
@@ -1856,7 +1856,9 @@ static int __init monitor_hang_init(void)
 		return err;
 	}
 	hang_detect_init();
+#if IS_ENABLED(CONFIG_MTK_AEE_IPANIC)
 	mrdump_regist_hang_bt(show_task_info);
+#endif
 
 #ifdef CONFIG_MTK_HANG_PROC
 	pe = proc_create("monitor_hang", 0660, NULL, &monitor_hang_fops);
@@ -1868,7 +1870,9 @@ static int __init monitor_hang_init(void)
 
 static void __exit monitor_hang_exit(void)
 {
+#if IS_ENABLED(CONFIG_MTK_AEE_IPANIC)
 	mrdump_regist_hang_bt(NULL);
+#endif
 	misc_deregister(&Hang_Monitor_dev);
 	kfree(thread_array);
 #ifdef CONFIG_MTK_HANG_DETECT_DB

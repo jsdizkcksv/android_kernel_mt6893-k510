@@ -33,7 +33,7 @@
 
 static char *adsp_ke_buffer;
 static struct adsp_exception_control excep_ctrl;
-static bool suppress_test_ee;
+static bool __maybe_unused suppress_test_ee;
 
 static u32 copy_from_buffer(void *dest, size_t destsize, const void *src,
 			    size_t srcsize, u32 offset, size_t request)

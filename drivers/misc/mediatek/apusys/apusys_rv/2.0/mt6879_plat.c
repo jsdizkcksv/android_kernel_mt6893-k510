@@ -342,7 +342,7 @@ static int mt6879_apu_power_init(struct mtk_apu *apu)
 
 static int mt6879_apu_power_on(struct mtk_apu *apu)
 {
-	struct device *dev = apu->dev;
+	struct device __maybe_unused *dev = apu->dev;
 	int ret, timeout, i = 0;
 
 	/* to force apu top power on synchronously */
@@ -419,7 +419,7 @@ error_put_power_dev:
 
 static int mt6879_apu_power_off(struct mtk_apu *apu)
 {
-	struct device *dev = apu->dev;
+	struct device __maybe_unused *dev = apu->dev;
 	int ret, timeout, i = 0;
 
 	ret = pm_runtime_put_sync(apu->dev);
