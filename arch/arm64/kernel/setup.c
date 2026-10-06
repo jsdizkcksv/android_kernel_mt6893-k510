@@ -340,7 +340,22 @@ void __init __no_sanitize_address setup_arch(char **cmdline_p)
 	xen_early_init();
 	efi_init();
 
-	if (!efi_enabled(EFI_BOOT) && ((u64)_text % MIN_KIMG_ALIGN) != 0)
+	/*
+	 * LK loads the kernel image at 0x40080000, i.e. 0x80000 below a
+	 * MIN_KIMG_ALIGN (2 MiB) boundary.  head.S folds that bias into the
+	 * relocation offset
+	 *	adrp x23, __PHYS_OFFSET
+	 *	and  x23, x23, MIN_KIMG_ALIGN - 1
+	 *	...  orr  x23, x23, x0
+	 * so the image ends up correctly aligned in physical memory but the
+	 * virtual _text keeps the bias, and this upstream check fires on
+	 * every boot.  4.19 had no such check (its TEXT_OFFSET was 0x80000 by
+	 * design).  Subtract the bias the bootloader is responsible for so
+	 * that only genuinely unexpected misalignments are reported.
+	 */
+	if (!efi_enabled(EFI_BOOT) &&
+	    (((u64)_text - (kaslr_offset() & (MIN_KIMG_ALIGN - 1))) %
+	     MIN_KIMG_ALIGN) != 0)
 	     pr_warn(FW_BUG "Kernel image misaligned at boot, please fix your bootloader!");
 
 	arm64_memblock_init();
