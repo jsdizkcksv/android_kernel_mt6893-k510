@@ -47,10 +47,16 @@ obj-$(CONFIG_MTK_CMDQ_MBOX_EXT) += cmdq-test.o
 # exactly one of them must be linked.  Select the one matching the SoC.
 ifeq ($(CONFIG_MACH_MT6893),y)
 cmdq-platform-obj := cmdq-platform-mt6893.o
+cmdq-platform-src := cmdq-platform-mt6893.c
 else
 cmdq-platform-obj := cmdq-platform-$(subst $",,$(CONFIG_MTK_PLATFORM)).o
+cmdq-platform-src := cmdq-platform-$(subst $",,$(CONFIG_MTK_PLATFORM)).c
 endif
-ifneq ($(wildcard $(srctree)/$(src)/$(cmdq-platform-obj)),)
+# WARNING: the guard must test the *source* file.  $(cmdq-platform-obj) is a
+# build artifact and never exists in $(src), so guarding on it silently drops
+# the whole CMDQ platform layer without any build error (same class of bug as
+# drivers/misc/mediatek/mdp/Makefile, commit 5776083a88a1).
+ifneq ($(wildcard $(srctree)/$(src)/$(cmdq-platform-src)),)
 obj-$(CONFIG_MTK_CMDQ_MBOX_EXT) += $(cmdq-platform-obj)
 endif
 

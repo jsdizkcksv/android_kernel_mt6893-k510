@@ -65,12 +65,21 @@ obj-$(CONFIG_MTK_MDP_MT6873) += mdp_drv_mt6873.o
 obj-$(CONFIG_MTK_MDP_MT6853) += mdp_drv_mt6853.o
 # AGATE: every mdp_mt*.c implements the same platform hooks, so exactly
 # one of them may be linked.  Pick the one matching this SoC.
+#
+# WARNING: the guard must test the *source* file (mdp_mt<SoC>.c).
+# Testing $(mdp-soc-obj) can never succeed: mdp_drv_mt<SoC>.o is a composite
+# target created by "mdp_drv_mt<SoC>-objs :=" and therefore never exists in
+# $(src).  Getting this wrong silently drops the ENTIRE MDP/CMDQ subsystem
+# (no cmdq_init -> mdp_funcs.getGroupIsp stays NULL -> DIP_Init() calls 0x0
+# -> ESR 0x86000005 IABT -> kernel panic) without any build error.
 ifeq ($(CONFIG_MACH_MT6893),y)
 mdp-soc-obj := mdp_drv_mt6893.o
+mdp-soc-src := mdp_mt6893.c
 else
 mdp-soc-obj := mdp_drv_mt$(subst $",,$(CONFIG_MTK_PLATFORM)).o
+mdp-soc-src := mdp_mt$(subst $",,$(CONFIG_MTK_PLATFORM)).c
 endif
-ifneq ($(wildcard $(srctree)/$(src)/$(mdp-soc-obj)),)
+ifneq ($(wildcard $(srctree)/$(src)/$(mdp-soc-src)),)
 obj-$(CONFIG_MTK_MDP) += $(mdp-soc-obj)
 endif
 
