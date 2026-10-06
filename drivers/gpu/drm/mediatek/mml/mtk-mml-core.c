@@ -1777,7 +1777,7 @@ void mml_update_array(struct mml_task_reuse *reuse,
 	*va = (*va & GENMASK(63, 32)) | value;
 }
 
-noinline int tracing_mark_write(char *fmt, ...)
+noinline int mml_tracing_mark_write(char *fmt, ...)
 {
 #ifdef CONFIG_TRACING
 	char buf[MML_TRACE_MSG_LEN];
